@@ -1,7 +1,7 @@
-using GeoLocationCityDetector.Models;
+using GeoDistrictDetector.Models;
 using System.Text.Json;
 
-namespace GeoLocationCityDetector.Services
+namespace GeoDistrictDetector.Services
 {
     /// <summary>
     /// 地理位置服务实现

@@ -1,6 +1,6 @@
 using System;
 
-namespace GeoLocationCityDetector.Models
+namespace GeoDistrictDetector.Models
 {
     /// <summary>
     /// 行政区域对象，对应 sample-cities.csv 的每一行。

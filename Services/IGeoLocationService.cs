@@ -1,6 +1,6 @@
-using GeoLocationCityDetector.Models;
+using GeoDistrictDetector.Models;
 
-namespace GeoLocationCityDetector.Services
+namespace GeoDistrictDetector.Services
 {
     /// <summary>
     /// 地理位置服务接口

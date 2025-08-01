@@ -1,4 +1,4 @@
-namespace GeoLocationCityDetector.Models
+namespace GeoDistrictDetector.Models
 {
     /// <summary>
     /// 表示地理坐标点

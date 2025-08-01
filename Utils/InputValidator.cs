@@ -1,6 +1,6 @@
-using GeoLocationCityDetector.Models;
+using GeoDistrictDetector.Models;
 
-namespace GeoLocationCityDetector.Utils
+namespace GeoDistrictDetector.Utils
 {
     /// <summary>
     /// 输入验证工具类

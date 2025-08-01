@@ -1,8 +1,8 @@
-﻿using GeoLocationCityDetector.Models;
-using GeoLocationCityDetector.Services;
-using GeoLocationCityDetector.Utils;
+﻿using GeoDistrictDetector.Models;
+using GeoDistrictDetector.Services;
+using GeoDistrictDetector.Utils;
 
-namespace GeoLocationCityDetector
+namespace GeoDistrictDetector
 {
     class Program
     {
@@ -202,10 +202,10 @@ namespace GeoLocationCityDetector
         private static void ShowUsage()
         {
             Console.WriteLine("用法:");
-            Console.WriteLine("  GeoLocationCityDetector.exe <数据文件路径> <纬度> <经度>");
+            Console.WriteLine("  GeoDistrictDetector.exe <数据文件路径> <纬度> <经度>");
             Console.WriteLine();
             Console.WriteLine("示例:");
-            Console.WriteLine("  GeoLocationCityDetector.exe cities.csv 39.9042 116.4074");
+            Console.WriteLine("  GeoDistrictDetector.exe cities.csv 39.9042 116.4074");
             Console.WriteLine();
             Console.WriteLine("或者直接运行程序进入交互式模式");
         }
