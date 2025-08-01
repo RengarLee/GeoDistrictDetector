@@ -1,0 +1,51 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.swp
+*.tmp
+*.log
+*.vs/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Rider
+.idea/
+*.sln.iml
+
+# Visual Studio Code
+.vscode/
+
+# Others
+*.dbmdl
+*.bak
+*.backup
+*.cache
+*.pdb
+*.mdb
+*.opendb
+*.pidb
+*.svd
+*.scc
+*.ncb
+*.sbr
+*.sdf
+*.psess
+*.vsp
+*.vspx
+*.vspscc
+*.vssscc
+*.tmp_proj
+*.tmp
+*.log
+*.vsix
+*.docstates
+_ReSharper*/
+
+# Test Results
+TestResults/
