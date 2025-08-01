@@ -1,0 +1,14 @@
+C:\Users\33281\repos\GeoLocationCityDetector\bin\Debug\net9.0\GeoLocationCityDetector.exe
+C:\Users\33281\repos\GeoLocationCityDetector\bin\Debug\net9.0\GeoLocationCityDetector.deps.json
+C:\Users\33281\repos\GeoLocationCityDetector\bin\Debug\net9.0\GeoLocationCityDetector.runtimeconfig.json
+C:\Users\33281\repos\GeoLocationCityDetector\bin\Debug\net9.0\GeoLocationCityDetector.dll
+C:\Users\33281\repos\GeoLocationCityDetector\bin\Debug\net9.0\GeoLocationCityDetector.pdb
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.AssemblyInfoInputs.cache
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.AssemblyInfo.cs
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.csproj.CoreCompileInputs.cache
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.dll
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\refint\GeoLocationCityDetector.dll
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.pdb
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\GeoLocationCityDetector.genruntimeconfig.cache
+C:\Users\33281\repos\GeoLocationCityDetector\obj\Debug\net9.0\ref\GeoLocationCityDetector.dll

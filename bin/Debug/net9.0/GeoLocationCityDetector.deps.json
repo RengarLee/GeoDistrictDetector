@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "GeoLocationCityDetector/1.0.0": {
+        "runtime": {
+          "GeoLocationCityDetector.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "GeoLocationCityDetector/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
