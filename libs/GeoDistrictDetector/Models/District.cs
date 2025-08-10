@@ -1,12 +1,29 @@
-using System;
+using System.Collections.Generic;
 
-namespace GeoLocationCityDetector.Models
+
+namespace GeoDistrictDetector.Models
 {
     /// <summary>
-    /// 行政区域对象，对应 sample-cities.csv 的每一行。
+    /// 行政区域对象，对应 sample-distances.csv 的每一行。
     /// </summary>
     public class District
     {
+        public District(int id, int pid, DistrictLevel deep, string name, string extPath, string geo, NetTopologySuite.Geometries.Geometry polygon)
+        {
+            Id = id;
+            Pid = pid;
+            Deep = deep;
+            Name = name;
+            ExtPath = extPath;
+            Geo = geo;
+            Polygon = polygon;
+        }
+
+        public override string ToString()
+        {
+            return $"{Id},{Pid},{Deep},{Name},{ExtPath},{Geo},{Polygon?.GeometryType}";
+        }
+
         /// <summary>
         /// 区域ID，与 ok_data_level*.csv 表中的 ID 相同，通过此 ID 关联到省市区具体数据。
         /// </summary>
@@ -18,9 +35,9 @@ namespace GeoLocationCityDetector.Models
         public int Pid { get; set; }
 
         /// <summary>
-        /// 层级深度；0：省，1：市，2：区。
+        /// 层级深度。
         /// </summary>
-        public int Deep { get; set; }
+        public DistrictLevel Deep { get; set; }
 
         /// <summary>
         /// 区域名称，如：罗湖区，城市完整名称。
@@ -38,8 +55,8 @@ namespace GeoLocationCityDetector.Models
         public string? Geo { get; set; }
 
         /// <summary>
-        /// 行政区域边界，高德地图GCJ-02火星坐标系。格式："lng lat,...;lng lat,..." 或 "EMPTY"。
+        /// 行政区域边界，空间数据类型。建议用 NetTopologySuite.Geometries.Geometry 存储。
         /// </summary>
-        public string? Polygon { get; set; }
+        public NetTopologySuite.Geometries.Geometry Polygon { get; set; } = NetTopologySuite.Geometries.GeometryFactory.Default.CreateGeometryCollection(null);
     }
 }
