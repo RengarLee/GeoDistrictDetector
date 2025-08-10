@@ -1,4 +1,5 @@
-namespace GeoLocationCityDetector.Models
+using System;
+namespace GeoDistrictDetector.Models
 {
     /// <summary>
     /// 表示地理坐标点
