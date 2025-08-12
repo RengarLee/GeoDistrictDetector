@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NetTopologySuite.Geometries;
 
 
 namespace GeoDistrictDetector.Models
@@ -8,7 +9,7 @@ namespace GeoDistrictDetector.Models
     /// </summary>
     public class District
     {
-        public District(int id, int pid, DistrictLevel deep, string name, string extPath, string geo, NetTopologySuite.Geometries.Geometry polygon)
+        public District(int id, int pid, DistrictLevel deep, string name, string extPath, Coordinate geo, Geometry polygon)
         {
             Id = id;
             Pid = pid;
@@ -50,13 +51,13 @@ namespace GeoDistrictDetector.Models
         public string? ExtPath { get; set; }
 
         /// <summary>
-        /// 城市中心坐标，高德地图GCJ-02火星坐标系。格式："lng lat" 或 "EMPTY"。
+        /// 城市中心坐标，高德地图GCJ-02火星坐标系。格式：Coordinate 类型。
         /// </summary>
-        public string? Geo { get; set; }
+        public Coordinate Geo { get; set; }
 
         /// <summary>
         /// 行政区域边界，空间数据类型。建议用 NetTopologySuite.Geometries.Geometry 存储。
         /// </summary>
-        public NetTopologySuite.Geometries.Geometry Polygon { get; set; } = NetTopologySuite.Geometries.GeometryFactory.Default.CreateGeometryCollection(null);
+        public Geometry Polygon { get; set; } = new GeometryCollection(null);
     }
 }
