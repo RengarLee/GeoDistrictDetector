@@ -9,6 +9,7 @@ obj/
 *.tmp
 *.log
 *.vs/
+*.csv
 
 # OS generated files
 .DS_Store
