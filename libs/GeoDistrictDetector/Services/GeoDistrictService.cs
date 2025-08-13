@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using GeoDistrictDetector.Models;
 using System.Text.Json;
+using NetTopologySuite.Index.Strtree;
+using NetTopologySuite.Geometries.Prepared;
 
 namespace GeoDistrictDetector.Services
 {
@@ -14,98 +16,194 @@ namespace GeoDistrictDetector.Services
     public class GeoDistrictService : IGeoDistrictService
     {
         private List<District> _districts = new List<District>();
-        private readonly double _earthRadius = 6371; // 地球半径（公里）
+        
+        // 空间索引相关 - 按行政级别分别建索引
+        private STRtree<District> _provinceIndex = new STRtree<District>();
+        private STRtree<District> _cityIndex = new STRtree<District>();
+        private STRtree<District> _districtIndex = new STRtree<District>();
+        
+        private Dictionary<int, IPreparedGeometry> _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
+
+        /// <summary>
+        /// 根据经纬度查找 DistrictLevel=2 且点在 Polygon 内的 District
+        /// </summary>
+        public District? FindDistrictLevel2ByPoint(double longitude, double latitude)
+        {
+            if (_districts.Count == 0)
+                throw new InvalidOperationException("区域数据未加载，请先调用 LoadDistrictDataAsync 方法");
+
+            // 只筛选 DistrictLevel=2
+            var candidates = _districts.Where(d => d.Deep == DistrictLevel.District && d.Polygon != null && !d.Polygon.IsEmpty);
+            var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
+            foreach (var district in candidates)
+            {
+                if (district.Polygon.Covers(point))
+                    return district;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 构建空间索引，提升查询性能
+        /// </summary>
+        private void BuildSpatialIndex()
+        {
+            _provinceIndex = new STRtree<District>();
+            _cityIndex = new STRtree<District>();
+            _districtIndex = new STRtree<District>();
+            _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
+            
+            // 按级别分别构建索引
+            foreach (var district in _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty))
+            {
+                // 根据行政级别添加到对应的索引
+                switch (district.Deep)
+                {
+                    case DistrictLevel.Province:
+                        _provinceIndex.Insert(district.Polygon.EnvelopeInternal, district);
+                        break;
+                    case DistrictLevel.City:
+                        _cityIndex.Insert(district.Polygon.EnvelopeInternal, district);
+                        break;
+                    case DistrictLevel.District:
+                        _districtIndex.Insert(district.Polygon.EnvelopeInternal, district);
+                        break;
+                }
+                
+                // 为所有级别创建PreparedGeometry
+                _preparedGeometries[district.Id] = PreparedGeometryFactory.Prepare(district.Polygon);
+            }
+        }
+
+        /// <summary>
+        /// 根据经纬度查找所属城市
+        /// </summary>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <returns>匹配的城市District，如果没找到返回null</returns>
+        public District? FindCityByCoordinate(double longitude, double latitude)
+        {
+            if (_districts.Count == 0)
+                throw new InvalidOperationException("区域数据未加载，请先调用 LoadDistrictDataAsync 方法");
+
+            // 验证输入参数
+            if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
+                throw new ArgumentException("经纬度参数超出有效范围");
+
+            var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
+            
+            // 使用STRtree快速筛选候选区域
+            var candidates = _cityIndex.Query(point.EnvelopeInternal);
+            
+            // 使用PreparedGeometry进行精确的空间查询
+            foreach (var city in candidates)
+            {
+                if (_preparedGeometries.ContainsKey(city.Id) && 
+                    _preparedGeometries[city.Id].Covers(point))
+                {
+                    return city;
+                }
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// 根据经纬度查找所属省份
+        /// </summary>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <returns>匹配的省份District，如果没找到返回null</returns>
+        public District? FindProvinceByCoordinate(double longitude, double latitude)
+        {
+            return FindDistrictByCoordinateAndLevel(longitude, latitude, DistrictLevel.Province, _provinceIndex);
+        }
+
+        /// <summary>
+        /// 根据经纬度查找所属县区
+        /// </summary>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <returns>匹配的县区District，如果没找到返回null</returns>
+        public District? FindDistrictByCoordinate(double longitude, double latitude)
+        {
+            return FindDistrictByCoordinateAndLevel(longitude, latitude, DistrictLevel.District, _districtIndex);
+        }
+
+        /// <summary>
+        /// 根据经纬度和行政级别查找行政区域的通用方法
+        /// </summary>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <param name="level">行政级别</param>
+        /// <param name="index">对应的空间索引</param>
+        /// <returns>匹配的District，如果没找到返回null</returns>
+        private District? FindDistrictByCoordinateAndLevel(double longitude, double latitude, DistrictLevel level, STRtree<District> index)
+        {
+            if (_districts.Count == 0)
+                throw new InvalidOperationException("区域数据未加载，请先调用 LoadDistrictDataAsync 方法");
+
+            // 验证输入参数
+            if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
+                throw new ArgumentException("经纬度参数超出有效范围");
+
+            var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
+            
+            // 使用对应级别的STRtree快速筛选候选区域
+            var candidates = index.Query(point.EnvelopeInternal);
+            
+            // 使用PreparedGeometry进行精确的空间查询
+            foreach (var district in candidates)
+            {
+                if (_preparedGeometries.ContainsKey(district.Id) && 
+                    _preparedGeometries[district.Id].Covers(point))
+                {
+                    return district;
+                }
+            }
+            
+            return null;
+        }
+
+        /// <summary>
+        /// 根据经纬度查找完整的行政区划信息（省、市、县）
+        /// </summary>
+        /// <param name="longitude">经度</param>
+        /// <param name="latitude">纬度</param>
+        /// <returns>包含省市县信息的对象</returns>
+        public (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude)
+        {
+            var province = FindProvinceByCoordinate(longitude, latitude);
+            var city = FindCityByCoordinate(longitude, latitude);
+            var district = FindDistrictByCoordinate(longitude, latitude);
+            
+            return (province, city, district);
+        }
+
+        /// <summary>
+        /// 加载District数据并构建空间索引
+        /// </summary>
+        /// <param name="districts">District数据列表</param>
+        public void LoadDistrictData(List<District> districts)
+        {
+            _districts = districts ?? new List<District>();
+            
+            // 数据加载完成后构建空间索引
+            BuildSpatialIndex();
+        }
+
+        /// <summary>
+        /// 异步加载District数据并构建空间索引
+        /// </summary>
+        /// <param name="districts">District数据列表</param>
+        public async Task LoadDistrictDataAsync(List<District> districts)
+        {
+            await Task.Run(() => LoadDistrictData(districts));
+        }
 
         public List<District> GetAllDistricts()
         {
             return _districts.ToList();
         }
-
-        /// <summary>
-        /// 计算两点间的距离（使用Haversine公式）
-        /// </summary>
-        private double CalculateDistance(GeoPoint point1, GeoPoint point2)
-        {
-            double ToRadians(double degrees) => degrees * Math.PI / 180.0;
-            double lat1Rad = ToRadians(point1.Latitude);
-            double lat2Rad = ToRadians(point2.Latitude);
-            double deltaLatRad = ToRadians(point2.Latitude - point1.Latitude);
-            double deltaLonRad = ToRadians(point2.Longitude - point1.Longitude);
-
-            double a = Math.Sin(deltaLatRad / 2) * Math.Sin(deltaLatRad / 2) +
-                       Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
-                       Math.Sin(deltaLonRad / 2) * Math.Sin(deltaLonRad / 2);
-
-            double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return _earthRadius * c;
-        }
-
-        /// <summary>
-        /// 判断点是否在多边形内（射线法）
-        /// </summary>
-        private bool IsPointInPolygon(GeoPoint point, List<GeoPoint> polygon)
-        {
-            if (polygon.Count < 3)
-                return false;
-
-            bool inside = false;
-            int j = polygon.Count - 1;
-
-            for (int i = 0; i < polygon.Count; i++)
-            {
-                if (((polygon[i].Latitude > point.Latitude) != (polygon[j].Latitude > point.Latitude)) &&
-                    (point.Longitude < (polygon[j].Longitude - polygon[i].Longitude) *
-                     (point.Latitude - polygon[i].Latitude) / (polygon[j].Latitude - polygon[i].Latitude) + polygon[i].Longitude))
-                {
-                    inside = !inside;
-                }
-                j = i;
-            }
-
-            return inside;
-        }
-
-        // 解析 polygon 字符串为 Geometry 对象
-        private NetTopologySuite.Geometries.Geometry ParsePolygonGeometry(string polygonStr)
-        {
-            if (string.IsNullOrEmpty(polygonStr) || polygonStr == "EMPTY")
-                return NetTopologySuite.Geometries.GeometryFactory.Default.CreateGeometryCollection(null);
-            try
-            {
-                var factory = NetTopologySuite.Geometries.GeometryFactory.Default;
-                var polygons = new List<NetTopologySuite.Geometries.Polygon>();
-                var blocks = polygonStr.Split(';');
-                foreach (var block in blocks)
-                {
-                    var coords = block.Split(',');
-                    var points = new List<NetTopologySuite.Geometries.Coordinate>();
-                    foreach (var coord in coords)
-                    {
-                        var lngLat = coord.Trim().Split(' ');
-                        if (lngLat.Length == 2 &&
-                            double.TryParse(lngLat[0], out double lng) &&
-                            double.TryParse(lngLat[1], out double lat))
-                        {
-                            points.Add(new NetTopologySuite.Geometries.Coordinate(lng, lat));
-                        }
-                    }
-                    if (points.Count > 2)
-                    {
-                        if (!points[0].Equals2D(points[points.Count - 1]))
-                            points.Add(points[0]);
-                        var linearRing = factory.CreateLinearRing(points.ToArray());
-                        polygons.Add(factory.CreatePolygon(linearRing));
-                    }
-                }
-                if (polygons.Count == 1)
-                    return polygons[0];
-                else if (polygons.Count > 1)
-                    return factory.CreateMultiPolygon(polygons.ToArray());
-            }
-            catch { }
-            return NetTopologySuite.Geometries.GeometryFactory.Default.CreateGeometryCollection(null);
-        }
-
-        // 移除未使用的 ToRadians
     }
 }
