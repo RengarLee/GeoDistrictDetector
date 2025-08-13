@@ -125,7 +125,7 @@ namespace GeoDistrictDetector.Services
         /// <param name="longitude">经度</param>
         /// <param name="latitude">纬度</param>
         /// <returns>匹配的县区District，如果没找到返回null</returns>
-        public District? FindDistrictByCoordinate(double longitude, double latitude)
+        public District? FindCountyByCoordinate(double longitude, double latitude)
         {
             return FindDistrictByCoordinateAndLevel(longitude, latitude, DistrictLevel.County, _districtIndex);
         }
@@ -175,7 +175,7 @@ namespace GeoDistrictDetector.Services
         {
             var province = FindProvinceByCoordinate(longitude, latitude);
             var city = FindCityByCoordinate(longitude, latitude);
-            var district = FindDistrictByCoordinate(longitude, latitude);
+            var district = FindCountyByCoordinate(longitude, latitude);
             
             return (province, city, district);
         }

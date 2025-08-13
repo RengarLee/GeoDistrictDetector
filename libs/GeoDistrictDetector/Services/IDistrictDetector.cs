@@ -43,7 +43,7 @@ namespace GeoDistrictDetector.Services
         /// <param name="longitude">经度</param>
         /// <param name="latitude">纬度</param>
         /// <returns>匹配的县区District，如果没找到返回null</returns>
-        District? FindDistrictByCoordinate(double longitude, double latitude);
+        District? FindCountyByCoordinate(double longitude, double latitude);
 
         /// <summary>
         /// 根据经纬度查找完整的行政区划信息（省、市、县）
