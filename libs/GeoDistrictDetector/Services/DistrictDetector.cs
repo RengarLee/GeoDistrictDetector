@@ -11,9 +11,9 @@ using NetTopologySuite.Geometries.Prepared;
 namespace GeoDistrictDetector.Services
 {
     /// <summary>
-    /// 地理位置服务实现
+    /// DistrictDetector：高性能区划检测服务，支持省/市/区三级空间索引
     /// </summary>
-    public class GeoDistrictService : IGeoDistrictService
+    public class DistrictDetector : IDistrictDetector
     {
         private List<District> _districts = new List<District>();
         
@@ -33,7 +33,7 @@ namespace GeoDistrictDetector.Services
                 throw new InvalidOperationException("区域数据未加载，请先调用 LoadDistrictDataAsync 方法");
 
             // 只筛选 DistrictLevel=2
-            var candidates = _districts.Where(d => d.Deep == DistrictLevel.District && d.Polygon != null && !d.Polygon.IsEmpty);
+            var candidates = _districts.Where(d => d.Deep == DistrictLevel.County && d.Polygon != null && !d.Polygon.IsEmpty);
             var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
             foreach (var district in candidates)
             {
@@ -65,7 +65,7 @@ namespace GeoDistrictDetector.Services
                     case DistrictLevel.City:
                         _cityIndex.Insert(district.Polygon.EnvelopeInternal, district);
                         break;
-                    case DistrictLevel.District:
+                    case DistrictLevel.County:
                         _districtIndex.Insert(district.Polygon.EnvelopeInternal, district);
                         break;
                 }
@@ -127,7 +127,7 @@ namespace GeoDistrictDetector.Services
         /// <returns>匹配的县区District，如果没找到返回null</returns>
         public District? FindDistrictByCoordinate(double longitude, double latitude)
         {
-            return FindDistrictByCoordinateAndLevel(longitude, latitude, DistrictLevel.District, _districtIndex);
+            return FindDistrictByCoordinateAndLevel(longitude, latitude, DistrictLevel.County, _districtIndex);
         }
 
         /// <summary>
@@ -205,5 +205,7 @@ namespace GeoDistrictDetector.Services
         {
             return _districts.ToList();
         }
+
+
     }
 }

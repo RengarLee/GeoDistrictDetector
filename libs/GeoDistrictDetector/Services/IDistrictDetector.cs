@@ -6,9 +6,9 @@ using GeoDistrictDetector.Models;
 namespace GeoDistrictDetector.Services
 {
     /// <summary>
-    /// 地理位置服务接口
+    /// 行政区定位服务接口
     /// </summary>
-    public interface IGeoDistrictService
+    public interface IDistrictDetector
     {
         /// <summary>
         /// 获取所有已加载的城市数据

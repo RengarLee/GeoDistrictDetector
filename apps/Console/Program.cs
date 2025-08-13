@@ -9,83 +9,33 @@ class Program
 {
     static void Main(string[] args)
     {
-        // 初始化 District 列表（不读取内容，仅传递路径）
-        string csvPath = @"../../libs/GeoDistrictDetector/sample-cities.csv";
-        var districts = GeoDistrictDetector.Models.DistrictFactory.LoadFromCsv(csvPath);
-        Console.WriteLine($"从CSV加载了 {districts.Count} 个 District 实例。");
-
-        // 如果CSV文件为空，创建一些测试数据
-        if (districts.Count == 0)
+        try
         {
-            districts = CreateTestDistricts();
-            Console.WriteLine($"创建了 {districts.Count} 个测试 District 实例。");
+            Console.WriteLine("=== DistrictDetector Factory 测试 ===");
+            var detector = CreateDetector();
+            TestCompleteAddressLookup(detector);
         }
-
-        // 创建地理位置服务并加载数据
-        var geoService = new GeoDistrictService();
-        geoService.LoadDistrictData(districts);
-        Console.WriteLine("空间索引构建完成！");
-
-        // 测试城市查找功能
-        TestCityLookup(geoService);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"应用启动失败: {ex.Message}");
+            Environment.Exit(1);
+        }
     }
 
-    static List<District> CreateTestDistricts()
+    static DistrictDetector CreateDetector()
     {
-        var factory = GeometryFactory.Default;
-        var districts = new List<District>();
+        string csvPath = "../../libs/GeoDistrictDetector/sample-cities.csv";
+        Console.WriteLine($"尝试从CSV加载数据: {csvPath}");
 
-        // 创建深圳市的测试数据 (简化的矩形区域)
-        var shenzhenCoords = new[]
-        {
-            new Coordinate(113.8, 22.4),  // 左下
-            new Coordinate(114.6, 22.4),  // 右下
-            new Coordinate(114.6, 22.8),  // 右上
-            new Coordinate(113.8, 22.8),  // 左上
-            new Coordinate(113.8, 22.4)   // 闭合
-        };
-        var shenzhenRing = factory.CreateLinearRing(shenzhenCoords);
-        var shenzhenPolygon = factory.CreatePolygon(shenzhenRing);
-        
-        districts.Add(new District(
-            id: 1, 
-            pid: 0, 
-            deep: DistrictLevel.City, 
-            name: "深圳市", 
-            extPath: "广东省 深圳市", 
-            geo: new Coordinate(114.0579, 22.5431), 
-            polygon: shenzhenPolygon
-        ));
-
-        // 创建北京市的测试数据
-        var beijingCoords = new[]
-        {
-            new Coordinate(116.0, 39.4),
-            new Coordinate(117.0, 39.4),
-            new Coordinate(117.0, 40.4),
-            new Coordinate(116.0, 40.4),
-            new Coordinate(116.0, 39.4)
-        };
-        var beijingRing = factory.CreateLinearRing(beijingCoords);
-        var beijingPolygon = factory.CreatePolygon(beijingRing);
-        
-        districts.Add(new District(
-            id: 2, 
-            pid: 0, 
-            deep: DistrictLevel.City, 
-            name: "北京市", 
-            extPath: "北京市", 
-            geo: new Coordinate(116.4074, 39.9042), 
-            polygon: beijingPolygon
-        ));
-
-        return districts;
+        var detector = DistrictDetectorFactory.CreateFromCsv(csvPath);
+        Console.WriteLine("✓ 从CSV文件成功加载数据");
+        return detector;
     }
 
-    static void TestCityLookup(IGeoDistrictService geoService)
+    static void TestCompleteAddressLookup(DistrictDetector detector)
     {
-        Console.WriteLine("\n=== 城市查找功能测试 ===");
-        
+        Console.WriteLine("\n=== 完整地址查找功能测试 ===");
+
         // 测试几个坐标点
         var testPoints = new[]
         {
@@ -98,26 +48,39 @@ class Program
         foreach (var point in testPoints)
         {
             Console.WriteLine($"\n测试坐标: {point.Name} ({point.Lng}, {point.Lat})");
-            
             try
             {
-                var city = geoService.FindCityByCoordinate(point.Lng, point.Lat);
-                if (city != null)
+                var (province, city, district) = detector.FindCompleteAddressByCoordinate(point.Lng, point.Lat);
+                if (province != null || city != null || district != null)
                 {
-                    Console.WriteLine($"  ✓ 找到城市: {city.Name}");
-                    Console.WriteLine($"  完整路径: {city.ExtPath}");
-                    Console.WriteLine($"  区域ID: {city.Id}");
-                    Console.WriteLine($"  层级: {city.Deep}");
+                    Console.WriteLine("  ✓ 找到地址信息:");
+                    if (province != null) Console.WriteLine($"    省份: {province.Name} (ID: {province.Id})");
+                    if (city != null) Console.WriteLine($"    城市: {city.Name} (ID: {city.Id})");
+                    if (district != null) Console.WriteLine($"    县区: {district.Name} (ID: {district.Id})");
+                    var fullPath = $"{province?.Name} {city?.Name} {district?.Name}".Trim();
+                    Console.WriteLine($"    完整地址: {fullPath}");
                 }
                 else
                 {
-                    Console.WriteLine($"  ✗ 未找到匹配的城市");
+                    Console.WriteLine("  ✗ 未找到匹配的地址");
                 }
+                TestIndividualQueries(detector, point.Lng, point.Lat);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"  ✗ 查询出错: {ex.Message}");
             }
         }
+    }
+
+    static void TestIndividualQueries(DistrictDetector detector, double lng, double lat)
+    {
+        var province = detector.FindProvinceByCoordinate(lng, lat);
+        var city = detector.FindCityByCoordinate(lng, lat);
+        var district = detector.FindDistrictByCoordinate(lng, lat);
+        Console.WriteLine("    分别查询结果:");
+        Console.WriteLine($"      省份查询: {province?.Name ?? "无"}");
+        Console.WriteLine($"      城市查询: {city?.Name ?? "无"}");
+        Console.WriteLine($"      县区查询: {district?.Name ?? "无"}");
     }
 }

@@ -7,6 +7,6 @@ namespace GeoDistrictDetector.Models
     {
         Province = 0,
         City = 1,
-        District = 2
+        County = 2
     }
 }
