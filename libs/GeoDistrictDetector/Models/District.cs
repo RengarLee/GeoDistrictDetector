@@ -26,7 +26,7 @@ namespace GeoDistrictDetector.Models
         }
 
         /// <summary>
-        /// 区域ID，与 ok_data_level*.csv 表中的 ID 相同，通过此 ID 关联到省市区具体数据。
+        /// 区域ID。
         /// </summary>
         public int Id { get; set; }
 
