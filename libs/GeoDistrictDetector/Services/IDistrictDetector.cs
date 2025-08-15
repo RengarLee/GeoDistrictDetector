@@ -25,11 +25,6 @@ namespace GeoDistrictDetector.Services
         District? FindCityByCoordinate(double longitude, double latitude);
 
         /// <summary>
-        /// 根据经纬度查找 DistrictLevel=2 且点在 Polygon 内的 District
-        /// </summary>
-        District? FindDistrictLevel2ByPoint(double longitude, double latitude);
-
-        /// <summary>
         /// 根据经纬度查找所属省份
         /// </summary>
         /// <param name="longitude">经度</param>
