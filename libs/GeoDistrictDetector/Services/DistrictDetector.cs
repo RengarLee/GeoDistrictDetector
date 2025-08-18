@@ -192,5 +192,57 @@ namespace GeoDistrictDetector.Services
                 
                 return (province, city, district);
             }
+
+            /// <summary>
+            /// 根据指定坐标系的经纬度查找所属城市
+            /// </summary>
+            /// <param name="longitude">经度</param>
+            /// <param name="latitude">纬度</param>
+            /// <param name="coordinateSystem">坐标系类型</param>
+            /// <returns>匹配的城市District，如果没找到返回null</returns>
+            public District? FindCityByCoordinate(double longitude, double latitude, CoordinateSystem coordinateSystem)
+            {
+                var (lng, lat) = CoordinateSystemConverter.ConvertToGcj02(longitude, latitude, coordinateSystem);
+                return FindCityByCoordinate(lng, lat);
+            }
+
+            /// <summary>
+            /// 根据指定坐标系的经纬度查找所属省份
+            /// </summary>
+            /// <param name="longitude">经度</param>
+            /// <param name="latitude">纬度</param>
+            /// <param name="coordinateSystem">坐标系类型</param>
+            /// <returns>匹配的省份District，如果没找到返回null</returns>
+            public District? FindProvinceByCoordinate(double longitude, double latitude, CoordinateSystem coordinateSystem)
+            {
+                var (lng, lat) = CoordinateSystemConverter.ConvertToGcj02(longitude, latitude, coordinateSystem);
+                return FindProvinceByCoordinate(lng, lat);
+            }
+
+            /// <summary>
+            /// 根据指定坐标系的经纬度查找所属县区
+            /// </summary>
+            /// <param name="longitude">经度</param>
+            /// <param name="latitude">纬度</param>
+            /// <param name="coordinateSystem">坐标系类型</param>
+            /// <returns>匹配的县区District，如果没找到返回null</returns>
+            public District? FindCountyByCoordinate(double longitude, double latitude, CoordinateSystem coordinateSystem)
+            {
+                var (lng, lat) = CoordinateSystemConverter.ConvertToGcj02(longitude, latitude, coordinateSystem);
+                return FindCountyByCoordinate(lng, lat);
+            }
+
+            /// <summary>
+            /// 根据指定坐标系的经纬度查找完整的行政区划信息（省、市、县）
+            /// </summary>
+            /// <param name="longitude">经度</param>
+            /// <param name="latitude">纬度</param>
+            /// <param name="coordinateSystem">坐标系类型</param>
+            /// <returns>包含省市县信息的元组</returns>
+            public (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude, CoordinateSystem coordinateSystem)
+            {
+                var (lng, lat) = CoordinateSystemConverter.ConvertToGcj02(longitude, latitude, coordinateSystem);
+                return FindCompleteAddressByCoordinate(lng, lat);
+            }
         }
 }
