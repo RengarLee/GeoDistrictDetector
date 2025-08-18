@@ -45,7 +45,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">WGS84经度</param>
         /// <param name="lat">WGS84纬度</param>
         /// <returns>GCJ02坐标</returns>
-        public static (double lng, double lat) Wgs84ToGcj02(double lng, double lat)
+        private static (double lng, double lat) Wgs84ToGcj02(double lng, double lat)
         {
             if (!IsInChina(lng, lat))
             {
@@ -69,7 +69,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">GCJ02经度</param>
         /// <param name="lat">GCJ02纬度</param>
         /// <returns>WGS84坐标</returns>
-        public static (double lng, double lat) Gcj02ToWgs84(double lng, double lat)
+        private static (double lng, double lat) Gcj02ToWgs84(double lng, double lat)
         {
             if (!IsInChina(lng, lat))
             {
@@ -93,7 +93,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">GCJ02经度</param>
         /// <param name="lat">GCJ02纬度</param>
         /// <returns>BD09坐标</returns>
-        public static (double lng, double lat) Gcj02ToBd09(double lng, double lat)
+        private static (double lng, double lat) Gcj02ToBd09(double lng, double lat)
         {
             var z = Math.Sqrt(lng * lng + lat * lat) + 0.00002 * Math.Sin(lat * Math.PI * 3000.0 / 180.0);
             var theta = Math.Atan2(lat, lng) + 0.000003 * Math.Cos(lng * Math.PI * 3000.0 / 180.0);
@@ -108,7 +108,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">BD09经度</param>
         /// <param name="lat">BD09纬度</param>
         /// <returns>GCJ02坐标</returns>
-        public static (double lng, double lat) Bd09ToGcj02(double lng, double lat)
+        private static (double lng, double lat) Bd09ToGcj02(double lng, double lat)
         {
             var x = lng - 0.0065;
             var y = lat - 0.006;
@@ -125,7 +125,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">WGS84经度</param>
         /// <param name="lat">WGS84纬度</param>
         /// <returns>BD09坐标</returns>
-        public static (double lng, double lat) Wgs84ToBd09(double lng, double lat)
+        private static (double lng, double lat) Wgs84ToBd09(double lng, double lat)
         {
             var (gcjLng, gcjLat) = Wgs84ToGcj02(lng, lat);
             return Gcj02ToBd09(gcjLng, gcjLat);
@@ -137,7 +137,7 @@ namespace GeoDistrictDetector
         /// <param name="lng">BD09经度</param>
         /// <param name="lat">BD09纬度</param>
         /// <returns>WGS84坐标</returns>
-        public static (double lng, double lat) Bd09ToWgs84(double lng, double lat)
+        private static (double lng, double lat) Bd09ToWgs84(double lng, double lat)
         {
             var (gcjLng, gcjLat) = Bd09ToGcj02(lng, lat);
             return Gcj02ToWgs84(gcjLng, gcjLat);
