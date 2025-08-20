@@ -11,6 +11,7 @@ obj/
 *.vs/
 *.csv
 BenchmarkDotNet.Artifacts/
+.github/copilot-instructions.md
 
 # OS generated files
 .DS_Store

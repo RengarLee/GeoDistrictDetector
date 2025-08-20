@@ -6,6 +6,7 @@ using GeoDistrictDetector.Models;
 using NetTopologySuite.Index.Strtree;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Geometries.Prepared;
+using GeoDistrictDetector;
 
 namespace GeoDistrictDetector.Services
 {
