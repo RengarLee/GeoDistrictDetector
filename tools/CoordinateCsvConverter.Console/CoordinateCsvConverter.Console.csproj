@@ -7,6 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
   <!-- Removed direct source file inclusion to avoid type conflicts. -->
+    <Compile Include="..\ConsoleProgressBar.cs" Link="ConsoleProgressBar.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NetTopologySuite" Version="2.6.0" />

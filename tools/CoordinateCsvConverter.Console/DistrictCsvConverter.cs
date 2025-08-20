@@ -88,13 +88,13 @@ public class DistrictCsvConverter
             int currentPercent = (int)((double)processedLines / totalLines * 100);
             if (currentPercent != lastPercent)
             {
-                ShowProgressBar(currentPercent, "Converting");
+                ConsoleProgressBar.Show(currentPercent, "Converting");
                 lastPercent = currentPercent;
             }
         }
         
-        Console.WriteLine(); // New line after progress bar
-        Console.WriteLine($"Conversion completed: {outputPath}");
+        ConsoleProgressBar.Complete("Conversion");
+        Console.WriteLine($"Output file: {outputPath}");
     }
 
     public static string? TryConvertCoordinateString(string geoStr, CoordinateSystem source, CoordinateSystem target)
@@ -210,16 +210,5 @@ public class DistrictCsvConverter
     {
         // Check if field is purely numeric (id, pid, deep are typically numeric)
         return double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out _);
-    }
-
-    private static void ShowProgressBar(int percent, string operation)
-    {
-        const int barWidth = 40;
-        int filledWidth = (int)((double)percent / 100 * barWidth);
-        
-        Console.Write($"\r{operation}: [");
-        Console.Write(new string('█', filledWidth));
-        Console.Write(new string('░', barWidth - filledWidth));
-        Console.Write($"] {percent}%");
     }
 }

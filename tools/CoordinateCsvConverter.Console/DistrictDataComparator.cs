@@ -6,17 +6,9 @@ using NetTopologySuite.Geometries;
 
 namespace CoordinateCsvConverter
 {
-    //            return string.Empty;
-
     /// <summary>
-    /// 比较多边形坐标
-    /// </summary>
-    /// <param name="leftPolygon">左侧多边形坐标</param>
-    /// <param name="rightPolygon">右侧多边形坐标</param>
-    /// <param name="leftSystem">左侧坐标系</param>
-    /// <param name="rightSystem">右侧坐标系</param>
-    /// <returns>错误信息，无误差返回空字符串</returns>
     /// DistrictData comparator - used to compare geographic data in two CSV files for discrepancies.
+    /// Supports different coordinate systems and tolerance-based comparison.
     /// </summary>
     public class DistrictDataComparator
     {
@@ -28,7 +20,7 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比结果信息
+        /// Comparison result information
         /// </summary>
         public class ComparisonResult
         {
@@ -40,13 +32,13 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比两个CSV文件中的DistrictData
-        /// <summary>
-        /// Comparison result information
+        /// Compare geographic data from two CSV files
         /// </summary>
-        /// <param name="leftSystem">左侧坐标系</param>
-        /// <param name="rightSystem">右侧坐标系</param>
-        /// <returns>对比结果</returns>
+        /// <param name="leftCsvPath">Path to the left CSV file</param>
+        /// <param name="rightCsvPath">Path to the right CSV file</param>
+        /// <param name="leftSystem">Coordinate system of left file</param>
+        /// <param name="rightSystem">Coordinate system of right file</param>
+        /// <returns>Comparison result</returns>
         public ComparisonResult Compare(string leftCsvPath, string rightCsvPath,
             CoordinateSystem leftSystem = CoordinateSystem.WGS84,
             CoordinateSystem rightSystem = CoordinateSystem.WGS84)
@@ -91,12 +83,12 @@ namespace CoordinateCsvConverter
                     int currentPercent = (int)((double)processedCount / result.TotalCount * 100);
                     if (currentPercent != lastPercent)
                     {
-                        ShowProgressBar(currentPercent, "Comparing");
+                        ConsoleProgressBar.Show(currentPercent, "Comparing");
                         lastPercent = currentPercent;
                     }
                 }
 
-                Console.WriteLine(); // New line after progress bar
+                ConsoleProgressBar.Complete("Comparison");
             }
             catch (Exception ex)
             {
@@ -107,14 +99,14 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比单个DistrictData对象
+        /// Compare individual DistrictData objects
         /// </summary>
-        /// <param name="id">数据ID</param>
-        /// <param name="left">左侧数据</param>
-        /// <param name="right">右侧数据</param>
-        /// <param name="leftSystem">左侧坐标系</param>
-        /// <param name="rightSystem">右侧坐标系</param>
-        /// <returns>错误信息列表</returns>
+        /// <param name="id">Data ID</param>
+        /// <param name="left">Left side data</param>
+        /// <param name="right">Right side data</param>
+        /// <param name="leftSystem">Left coordinate system</param>
+        /// <param name="rightSystem">Right coordinate system</param>
+        /// <returns>List of error messages</returns>
         private List<string> CompareDistrictData(string id, DistrictData? left, DistrictData? right,
             CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
@@ -150,13 +142,13 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比两个geo坐标点
+        /// Compare two geo coordinate points
         /// </summary>
-        /// <param name="leftGeo">左侧坐标</param>
-        /// <param name="rightGeo">右侧坐标</param>
-        /// <param name="leftSystem">左侧坐标系</param>
-        /// <param name="rightSystem">右侧坐标系</param>
-        /// <returns>错误信息，无误差返回空字符串</returns>
+        /// <param name="leftGeo">Left coordinate</param>
+        /// <param name="rightGeo">Right coordinate</param>
+        /// <param name="leftSystem">Left coordinate system</param>
+        /// <param name="rightSystem">Right coordinate system</param>
+        /// <returns>Error message, empty string if no error</returns>
         private string CompareGeoCoordinates(Coordinate? leftGeo, Coordinate? rightGeo, CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
             if (leftGeo == null && rightGeo == null)
@@ -190,13 +182,13 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比两个polygon坐标列表
+        /// Compare two polygon coordinate lists
         /// </summary>
-        /// <param name="leftPolygon">左侧多边形坐标</param>
-        /// <param name="rightPolygon">右侧多边形坐标</param>
-        /// <param name="leftSystem">左侧坐标系</param>
-        /// <param name="rightSystem">右侧坐标系</param>
-        /// <returns>错误信息，无误差返回空字符串</returns>
+        /// <param name="leftPolygon">Left polygon coordinates</param>
+        /// <param name="rightPolygon">Right polygon coordinates</param>
+        /// <param name="leftSystem">Left coordinate system</param>
+        /// <param name="rightSystem">Right coordinate system</param>
+        /// <returns>Error message, empty string if no error</returns>
         private string ComparePolygonCoordinates(List<Coordinate> leftPolygon, List<Coordinate> rightPolygon,
             CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
@@ -232,12 +224,12 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 转换多边形坐标系
+        /// Convert polygon coordinate system
         /// </summary>
-        /// <param name="polygon">原始多边形坐标</param>
-        /// <param name="fromSystem">源坐标系</param>
-        /// <param name="toSystem">目标坐标系</param>
-        /// <returns>转换后的坐标列表</returns>
+        /// <param name="polygon">Original polygon coordinates</param>
+        /// <param name="fromSystem">Source coordinate system</param>
+        /// <param name="toSystem">Target coordinate system</param>
+        /// <returns>Converted coordinate list</returns>
         private List<Coordinate> ConvertPolygonCoordinates(List<Coordinate> polygon,
             CoordinateSystem fromSystem, CoordinateSystem toSystem)
         {
@@ -262,12 +254,12 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 对比多边形顶点，返回最大距离
-        /// 按顺序逐一对比每个点位（要求顶点数量完全一致）
+        /// Compare polygon vertices and return maximum distance
+        /// Compare each point in order (requires exact same number of vertices)
         /// </summary>
-        /// <param name="leftPolygon">左侧多边形</param>
-        /// <param name="rightPolygon">右侧多边形</param>
-        /// <returns>最大顶点间距离（米）</returns>
+        /// <param name="leftPolygon">Left polygon</param>
+        /// <param name="rightPolygon">Right polygon</param>
+        /// <returns>Maximum distance between vertices (meters)</returns>
         private double ComparePolygonVertices(List<Coordinate> leftPolygon, List<Coordinate> rightPolygon)
         {
             if (leftPolygon == null || rightPolygon == null ||
@@ -294,13 +286,13 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 使用Haversine公式计算两点间距离（米）
+        /// Calculate distance between two points using Haversine formula (meters)
         /// </summary>
-        /// <param name="lng1">点1经度</param>
-        /// <param name="lat1">点1纬度</param>
-        /// <param name="lng2">点2经度</param>
-        /// <param name="lat2">点2纬度</param>
-        /// <returns>距离（米）</returns>
+        /// <param name="lng1">Point 1 longitude</param>
+        /// <param name="lat1">Point 1 latitude</param>
+        /// <param name="lng2">Point 2 longitude</param>
+        /// <param name="lat2">Point 2 latitude</param>
+        /// <returns>Distance in meters</returns>
         private double CalculateDistanceMeters(double lng1, double lat1, double lng2, double lat2)
         {
             try
@@ -325,11 +317,11 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 打印对比报告
+        /// Print comparison report
         /// </summary>
-        /// <param name="result">对比结果</param>
-        /// <param name="leftPath">左侧文件路径</param>
-        /// <param name="rightPath">右侧文件路径</param>
+        /// <param name="result">Comparison result</param>
+        /// <param name="leftPath">Left file path</param>
+        /// <param name="rightPath">Right file path</param>
         public void PrintComparisonReport(ComparisonResult result, string leftPath, string rightPath)
         {
             Console.WriteLine("=== DistrictData Comparison Report ===");
@@ -357,25 +349,14 @@ namespace CoordinateCsvConverter
             }
         }
 
-        private static void ShowProgressBar(int percent, string operation)
-        {
-            const int barWidth = 40;
-            int filledWidth = (int)((double)percent / 100 * barWidth);
-
-            Console.Write($"\r{operation}: [");
-            Console.Write(new string('█', filledWidth));
-            Console.Write(new string('░', barWidth - filledWidth));
-            Console.Write($"] {percent}%");
-        }
-
         /// <summary>
-        /// 比较多边形坐标（改进版，更好地处理EMPTY情况）
+        /// Compare polygon coordinates (improved version with better EMPTY handling)
         /// </summary>
-        /// <param name="leftPolygon">左侧多边形坐标</param>
-        /// <param name="rightPolygon">右侧多边形坐标</param>
-        /// <param name="leftSystem">左侧坐标系</param>
-        /// <param name="rightSystem">右侧坐标系</param>
-        /// <returns>错误信息，无误差返回空字符串</returns>
+        /// <param name="leftPolygon">Left polygon coordinates</param>
+        /// <param name="rightPolygon">Right polygon coordinates</param>
+        /// <param name="leftSystem">Left coordinate system</param>
+        /// <param name="rightSystem">Right coordinate system</param>
+        /// <returns>Error message, empty string if no error</returns>
         private string ComparePolygonCoordinatesWithEmpty(List<Coordinate> leftPolygon, List<Coordinate> rightPolygon,
             CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
