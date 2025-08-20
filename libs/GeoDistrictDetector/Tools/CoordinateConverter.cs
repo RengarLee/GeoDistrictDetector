@@ -32,14 +32,6 @@ namespace GeoDistrictDetector
         private const double EE = 0.00669342162296594323; // 扁心率平方
 
         /// <summary>
-        /// 判断坐标是否在中国大陆范围内
-        /// </summary>
-        private static bool IsInChina(double lng, double lat)
-        {
-            return lng > 73.66 && lng < 135.05 && lat > 3.86 && lat < 53.55;
-        }
-
-        /// <summary>
         /// WGS84转GCJ02(火星坐标系/高德坐标系)
         /// </summary>
         /// <param name="lng">WGS84经度</param>
@@ -47,11 +39,6 @@ namespace GeoDistrictDetector
         /// <returns>GCJ02坐标</returns>
         private static (double lng, double lat) Wgs84ToGcj02(double lng, double lat)
         {
-            if (!IsInChina(lng, lat))
-            {
-                return (lng, lat);
-            }
-
             var (dlng, dlat) = TransformDelta(lng - 105.0, lat - 35.0);
             var radlat = lat / 180.0 * Math.PI;
             var magic = Math.Sin(radlat);
@@ -71,11 +58,6 @@ namespace GeoDistrictDetector
         /// <returns>WGS84坐标</returns>
         private static (double lng, double lat) Gcj02ToWgs84(double lng, double lat)
         {
-            if (!IsInChina(lng, lat))
-            {
-                return (lng, lat);
-            }
-
             var (dlng, dlat) = TransformDelta(lng - 105.0, lat - 35.0);
             var radlat = lat / 180.0 * Math.PI;
             var magic = Math.Sin(radlat);
@@ -174,10 +156,13 @@ namespace GeoDistrictDetector
             {
                 (CoordinateSystem.WGS84, CoordinateSystem.GCJ02) => Wgs84ToGcj02(lng, lat),
                 (CoordinateSystem.WGS84, CoordinateSystem.BD09) => Wgs84ToBd09(lng, lat),
+                (CoordinateSystem.WGS84, CoordinateSystem.WGS84) => (lng, lat),
                 (CoordinateSystem.GCJ02, CoordinateSystem.WGS84) => Gcj02ToWgs84(lng, lat),
                 (CoordinateSystem.GCJ02, CoordinateSystem.BD09) => Gcj02ToBd09(lng, lat),
+                (CoordinateSystem.GCJ02, CoordinateSystem.GCJ02) => (lng, lat),
                 (CoordinateSystem.BD09, CoordinateSystem.WGS84) => Bd09ToWgs84(lng, lat),
                 (CoordinateSystem.BD09, CoordinateSystem.GCJ02) => Bd09ToGcj02(lng, lat),
+                (CoordinateSystem.BD09, CoordinateSystem.BD09) => (lng, lat),
                 _ => throw new ArgumentException($"不支持从 {sourceSystem} 转换到 {targetSystem}")
             };
         }
