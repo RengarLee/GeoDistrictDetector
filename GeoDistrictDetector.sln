@@ -4,7 +4,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeoDistrictDetector", "libs\GeoDistrictDetector\GeoDistrictDetector.csproj", "{F5FC050D-C06C-4F0F-AE81-D29FDC1A0F6A}"
 EndProject
-// Removed legacy Console project entry (apps\Console\GeoDistrictApp.csproj) - replaced by new example projects
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DistrictDetector.Console", "samples\DistrictDetector.Console\DistrictDetector.Console.csproj", "{5A9B5E2A-2B1C-4A6C-9B8F-0A1B2C3D4E5F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoordinateConversion.Console", "samples\CoordinateConversion.Console\CoordinateConversion.Console.csproj", "{6F7E8D9C-1A2B-3C4D-5E6F-7A8B9C0D1E2F}"
