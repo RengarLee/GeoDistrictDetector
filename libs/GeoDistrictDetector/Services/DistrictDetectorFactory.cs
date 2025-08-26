@@ -15,7 +15,7 @@ namespace GeoDistrictDetector.Services
         public static DistrictDetector CreateFromCsv(string csvPath)
         {
 
-            var districts = DistrictFactory.LoadFromCsv(csvPath);
+            var districts = DistrictLoader.LoadFromCsv(csvPath);
             return CreateFromDistricts(districts);
         }
 
