@@ -4,39 +4,39 @@ namespace GeoDistrictDetector
 {
 
     /// <summary>
-    /// 坐标系类型枚举
+    /// Coordinate system type enumeration
     /// </summary>
     public enum CoordinateSystem
     {
         /// <summary>
-        /// WGS84坐标系（GPS原始坐标）
+        /// WGS84 coordinate system (GPS original coordinates)
         /// </summary>
         WGS84,
         /// <summary>
-        /// GCJ02坐标系（火星坐标系，高德地图使用）
+        /// GCJ02 coordinate system (Mars coordinate system, used by Gaode Maps)
         /// </summary>
         GCJ02,
         /// <summary>
-        /// BD09坐标系（百度坐标系，百度地图使用）
+        /// BD09 coordinate system (Baidu coordinate system, used by Baidu Maps)
         /// </summary>
         BD09
     }
 
     /// <summary>
-    /// 坐标转换器（低级算法实现）
+    /// Coordinate converter (low-level algorithm implementation)
     /// </summary>
     public static class CoordinateConverter
     {
 
-        private const double A = 6378245.0; // 长半轴
-        private const double EE = 0.00669342162296594323; // 扁心率平方
+        private const double A = 6378245.0; // Semi-major axis
+        private const double EE = 0.00669342162296594323; // Eccentricity squared
 
         /// <summary>
-        /// WGS84转GCJ02(火星坐标系/高德坐标系)
+        /// Convert WGS84 to GCJ02 (Mars coordinate system/Gaode coordinate system)
         /// </summary>
-        /// <param name="lng">WGS84经度</param>
-        /// <param name="lat">WGS84纬度</param>
-        /// <returns>GCJ02坐标</returns>
+        /// <param name="lng">WGS84 longitude</param>
+        /// <param name="lat">WGS84 latitude</param>
+        /// <returns>GCJ02 coordinates</returns>
         private static (double lng, double lat) Wgs84ToGcj02(double lng, double lat)
         {
             var (dlng, dlat) = TransformDelta(lng - 105.0, lat - 35.0);
@@ -51,11 +51,11 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// GCJ02(火星坐标系/高德坐标系)转WGS84
+        /// Convert GCJ02 (Mars coordinate system/Gaode coordinate system) to WGS84
         /// </summary>
-        /// <param name="lng">GCJ02经度</param>
-        /// <param name="lat">GCJ02纬度</param>
-        /// <returns>WGS84坐标</returns>
+        /// <param name="lng">GCJ02 longitude</param>
+        /// <param name="lat">GCJ02 latitude</param>
+        /// <returns>WGS84 coordinates</returns>
         private static (double lng, double lat) Gcj02ToWgs84(double lng, double lat)
         {
             var (dlng, dlat) = TransformDelta(lng - 105.0, lat - 35.0);
@@ -70,11 +70,11 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// GCJ02(火星坐标系/高德坐标系)转BD09(百度坐标系)
+        /// Convert GCJ02 (Mars coordinate system/Gaode coordinate system) to BD09 (Baidu coordinate system)
         /// </summary>
-        /// <param name="lng">GCJ02经度</param>
-        /// <param name="lat">GCJ02纬度</param>
-        /// <returns>BD09坐标</returns>
+        /// <param name="lng">GCJ02 longitude</param>
+        /// <param name="lat">GCJ02 latitude</param>
+        /// <returns>BD09 coordinates</returns>
         private static (double lng, double lat) Gcj02ToBd09(double lng, double lat)
         {
             var z = Math.Sqrt(lng * lng + lat * lat) + 0.00002 * Math.Sin(lat * Math.PI * 3000.0 / 180.0);
@@ -85,11 +85,11 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// BD09(百度坐标系)转GCJ02(火星坐标系/高德坐标系)
+        /// Convert BD09 (Baidu coordinate system) to GCJ02 (Mars coordinate system/Gaode coordinate system)
         /// </summary>
-        /// <param name="lng">BD09经度</param>
-        /// <param name="lat">BD09纬度</param>
-        /// <returns>GCJ02坐标</returns>
+        /// <param name="lng">BD09 longitude</param>
+        /// <param name="lat">BD09 latitude</param>
+        /// <returns>GCJ02 coordinates</returns>
         private static (double lng, double lat) Bd09ToGcj02(double lng, double lat)
         {
             var x = lng - 0.0065;
@@ -102,11 +102,11 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// WGS84转BD09(百度坐标系)
+        /// Convert WGS84 to BD09 (Baidu coordinate system)
         /// </summary>
-        /// <param name="lng">WGS84经度</param>
-        /// <param name="lat">WGS84纬度</param>
-        /// <returns>BD09坐标</returns>
+        /// <param name="lng">WGS84 longitude</param>
+        /// <param name="lat">WGS84 latitude</param>
+        /// <returns>BD09 coordinates</returns>
         private static (double lng, double lat) Wgs84ToBd09(double lng, double lat)
         {
             var (gcjLng, gcjLat) = Wgs84ToGcj02(lng, lat);
@@ -114,11 +114,11 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// BD09(百度坐标系)转WGS84
+        /// Convert BD09 (Baidu coordinate system) to WGS84
         /// </summary>
-        /// <param name="lng">BD09经度</param>
-        /// <param name="lat">BD09纬度</param>
-        /// <returns>WGS84坐标</returns>
+        /// <param name="lng">BD09 longitude</param>
+        /// <param name="lat">BD09 latitude</param>
+        /// <returns>WGS84 coordinates</returns>
         private static (double lng, double lat) Bd09ToWgs84(double lng, double lat)
         {
             var (gcjLng, gcjLat) = Bd09ToGcj02(lng, lat);
@@ -126,7 +126,7 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// 坐标转换的核心算法
+        /// Core algorithm for coordinate transformation
         /// </summary>
         private static (double lng, double lat) TransformDelta(double lng, double lat)
         {
@@ -144,8 +144,8 @@ namespace GeoDistrictDetector
         }
 
         /// <summary>
-        /// 统一的坐标系转换方法：将坐标从 sourceSystem 转换到 targetSystem。
-        /// 所有高层次转换逻辑应集中在此方法中。
+        /// Unified coordinate system conversion method: convert coordinates from sourceSystem to targetSystem.
+        /// All high-level conversion logic should be centralized in this method.
         /// </summary>
         public static (double lng, double lat) Convert(double lng, double lat, CoordinateSystem sourceSystem, CoordinateSystem targetSystem)
         {
@@ -163,7 +163,7 @@ namespace GeoDistrictDetector
                 (CoordinateSystem.BD09, CoordinateSystem.WGS84) => Bd09ToWgs84(lng, lat),
                 (CoordinateSystem.BD09, CoordinateSystem.GCJ02) => Bd09ToGcj02(lng, lat),
                 (CoordinateSystem.BD09, CoordinateSystem.BD09) => (lng, lat),
-                _ => throw new ArgumentException($"不支持从 {sourceSystem} 转换到 {targetSystem}")
+                _ => throw new ArgumentException($"Conversion from {sourceSystem} to {targetSystem} is not supported")
             };
         }
 

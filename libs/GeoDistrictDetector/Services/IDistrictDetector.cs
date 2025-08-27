@@ -6,58 +6,58 @@ using GeoDistrictDetector.Models;
 namespace GeoDistrictDetector.Services
 {
     /// <summary>
-    /// 行政区定位服务接口
+    /// Administrative district location service interface
     /// </summary>
     public interface IDistrictDetector
     {
         /// <summary>
-        /// 获取所有已加载的城市数据
+        /// Get all loaded city data
         /// </summary>
-        /// <returns>城市列表</returns>
+        /// <returns>City list</returns>
         List<District> GetAllDistricts();
 
         /// <summary>
-        /// 根据经纬度查找所属城市
+        /// Find the city by longitude and latitude coordinates
         /// </summary>
-        /// <param name="longitude">经度</param>
-        /// <param name="latitude">纬度</param>
-        /// <returns>匹配的城市District，如果没找到返回null</returns>
+        /// <param name="longitude">Longitude</param>
+        /// <param name="latitude">Latitude</param>
+        /// <returns>Matching city District, returns null if not found</returns>
         District? FindCityByCoordinate(double longitude, double latitude);
 
         /// <summary>
-        /// 根据经纬度查找所属省份
+        /// Find the province by longitude and latitude coordinates
         /// </summary>
-        /// <param name="longitude">经度</param>
-        /// <param name="latitude">纬度</param>
-        /// <returns>匹配的省份District，如果没找到返回null</returns>
+        /// <param name="longitude">Longitude</param>
+        /// <param name="latitude">Latitude</param>
+        /// <returns>Matching province District, returns null if not found</returns>
         District? FindProvinceByCoordinate(double longitude, double latitude);
 
         /// <summary>
-        /// 根据经纬度查找所属县区
+        /// Find the county by longitude and latitude coordinates
         /// </summary>
-        /// <param name="longitude">经度</param>
-        /// <param name="latitude">纬度</param>
-        /// <returns>匹配的县区District，如果没找到返回null</returns>
+        /// <param name="longitude">Longitude</param>
+        /// <param name="latitude">Latitude</param>
+        /// <returns>Matching county District, returns null if not found</returns>
         District? FindCountyByCoordinate(double longitude, double latitude);
 
         /// <summary>
-        /// 根据经纬度查找完整的行政区划信息（省、市、县）
+        /// Find complete administrative division information (province, city, county) by longitude and latitude coordinates
         /// </summary>
-        /// <param name="longitude">经度</param>
-        /// <param name="latitude">纬度</param>
-        /// <returns>包含省市县信息的元组</returns>
+        /// <param name="longitude">Longitude</param>
+        /// <param name="latitude">Latitude</param>
+        /// <returns>Tuple containing province, city, and county information</returns>
         (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude);
 
         /// <summary>
-        /// 加载District数据并构建空间索引
+        /// Load District data and build spatial index
         /// </summary>
-        /// <param name="districts">District数据列表</param>
+        /// <param name="districts">District data list</param>
         void LoadDistrictData(List<District> districts);
 
         /// <summary>
-        /// 异步加载District数据并构建空间索引
+        /// Asynchronously load District data and build spatial index
         /// </summary>
-        /// <param name="districts">District数据列表</param>
+        /// <param name="districts">District data list</param>
         Task LoadDistrictDataAsync(List<District> districts);
     }
 }

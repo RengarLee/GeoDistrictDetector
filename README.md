@@ -1,53 +1,53 @@
 # GeoLocationCityDetector
 
-一个用于根据地理坐标点判断所属城市信息的.NET命令行工具。
+A .NET command-line tool for determining city information based on geographic coordinates.
 
-## 功能特性
+## Features
 
-- 🗺️ **坐标城市查询**: 根据经纬度坐标查找所属的城市信息
-- 📁 **多格式支持**: 支持CSV和JSON格式的城市数据文件
-- 🎯 **精确算法**: 使用Haversine公式计算距离，支持多边形边界判断
-- 💻 **命令行友好**: 支持命令行参数和交互式模式
-- ⚡ **高性能**: 异步处理，支持大量城市数据
+- 🗺️ **Coordinate City Query**: Find city information based on latitude and longitude coordinates
+- 📁 **Multi-format Support**: Supports CSV and JSON format city data files
+- 🎯 **Precise Algorithm**: Uses Haversine formula for distance calculation, supports polygon boundary detection
+- 💻 **CLI Friendly**: Supports command-line parameters and interactive mode
+- ⚡ **High Performance**: Asynchronous processing, supports large city datasets
 
-## 快速开始
+## Quick Start
 
-### 构建项目
+### Build Project
 
 ```bash
 dotnet build
 ```
 
-### 运行项目
+### Run Project
 
-#### 1. 交互式模式
+#### 1. Interactive Mode
 ```bash
 dotnet run
 ```
 
-#### 2. 命令行模式
+#### 2. Command Line Mode
 ```bash
 dotnet run sample-cities.csv 39.9042 116.4074
 ```
 
-## 使用方法
+## Usage
 
-### 数据文件格式
+### Data File Format
 
-#### CSV格式
+#### CSV Format
 ```csv
-省份,城市,区县,经度,纬度
-北京市,北京市,东城区,116.4074,39.9042
-上海市,上海市,黄浦区,121.4692,31.2301
+Province,City,District,Longitude,Latitude
+Beijing,Beijing,Dongcheng District,116.4074,39.9042
+Shanghai,Shanghai,Huangpu District,121.4692,31.2301
 ```
 
-#### JSON格式
+#### JSON Format
 ```json
 [
   {
-    "Province": "北京市",
-    "City": "北京市",
-    "District": "东城区",
+    "Province": "Beijing",
+    "City": "Beijing",
+    "District": "Dongcheng District",
     "CenterPoint": {
       "Latitude": 39.9042,
       "Longitude": 116.4074
@@ -57,34 +57,34 @@ dotnet run sample-cities.csv 39.9042 116.4074
 ]
 ```
 
-### 坐标格式
+### Coordinate Format
 
-支持以下坐标输入格式：
+Supports the following coordinate input formats:
 - `39.9042,116.4074`
 - `39.9042, 116.4074`
 - `39.9042 116.4074`
 - `(39.9042, 116.4074)`
 
-## 项目结构
+## Project Structure
 
 ```
 GeoLocationCityDetector/
 ├── Models/
-│   ├── GeoPoint.cs          # 地理坐标点模型
-│   └── CityInfo.cs          # 城市信息模型
+│   ├── GeoPoint.cs          # Geographic coordinate point model
+│   └── CityInfo.cs          # City information model
 ├── Services/
-│   ├── IGeoLocationService.cs   # 地理位置服务接口
-│   └── GeoLocationService.cs    # 地理位置服务实现
+│   ├── IGeoLocationService.cs   # Geographic location service interface
+│   └── GeoLocationService.cs    # Geographic location service implementation
 ├── Utils/
-│   └── InputValidator.cs    # 输入验证工具
-├── Program.cs               # 主程序入口
-└── sample-cities.csv        # 示例城市数据
+│   └── InputValidator.cs    # Input validation utility
+├── Program.cs               # Main program entry
+└── sample-cities.csv        # Sample city data
 ```
 
-## 核心算法
+## Core Algorithm
 
-### 1. 距离计算
-使用Haversine公式计算两个地理坐标点之间的球面距离：
+### 1. Distance Calculation
+Uses Haversine formula to calculate spherical distance between two geographic coordinate points:
 
 ```csharp
 double a = Math.Sin(deltaLatRad / 2) * Math.Sin(deltaLatRad / 2) +
@@ -94,63 +94,63 @@ double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
 return earthRadius * c;
 ```
 
-### 2. 点在多边形内判断
-使用射线法判断点是否在多边形边界内（当有边界数据时）。
+### 2. Point in Polygon Detection
+Uses ray casting algorithm to determine if a point is inside polygon boundaries (when boundary data is available).
 
-## 示例用法
+## Example Usage
 
-### 交互式模式示例
+### Interactive Mode Example
 
 ```
-=== 地理位置城市检测器 ===
+=== Geographic Location City Detector ===
 
-请选择操作：
-1. 加载城市数据文件
-2. 查询坐标所属城市
-3. 显示已加载的城市数量
-4. 退出
-请输入选项 (1-4): 1
+Please select an operation:
+1. Load city data file
+2. Query city by coordinates
+3. Display loaded city count
+4. Exit
+Please enter option (1-4): 1
 
-请输入城市数据文件路径 (支持CSV和JSON格式): sample-cities.csv
-成功加载 22 个城市数据
-城市数据加载成功！
+Please enter city data file path (supports CSV and JSON formats): sample-cities.csv
+Successfully loaded 22 city data entries
+City data loaded successfully!
 
-请选择操作：
-1. 加载城市数据文件
-2. 查询坐标所属城市
-3. 显示已加载的城市数量
-4. 退出
-请输入选项 (1-4): 2
+Please select an operation:
+1. Load city data file
+2. Query city by coordinates
+3. Display loaded city count
+4. Exit
+Please enter option (1-4): 2
 
-请输入坐标 (格式：纬度,经度，如：39.9042,116.4074): 39.9042,116.4074
-查询结果：
-  坐标: (39.9042, 116.4074)
-  所属城市: 北京市 - 北京市 - 东城区
-  城市中心点: (39.9042, 116.4074)
+Please enter coordinates (format: latitude,longitude, e.g.: 39.9042,116.4074): 39.9042,116.4074
+Query result:
+  Coordinates: (39.9042, 116.4074)
+  City: Beijing - Beijing - Dongcheng District
+  City center: (39.9042, 116.4074)
 ```
 
-### 命令行模式示例
+### Command Line Mode Example
 
 ```bash
 PS> dotnet run sample-cities.csv 39.9042 116.4074
-=== 地理位置城市检测器 ===
+=== Geographic Location City Detector ===
 
-加载数据文件: sample-cities.csv
-成功加载 22 个城市数据
-查询坐标: (39.9042, 116.4074)
-结果: 北京市 - 北京市 - 东城区
+Loading data file: sample-cities.csv
+Successfully loaded 22 city data entries
+Query coordinates: (39.9042, 116.4074)
+Result: Beijing - Beijing - Dongcheng District
 ```
 
-## 扩展功能
+## Extended Features
 
-### 添加边界数据支持
-可以在城市数据中添加边界坐标点，实现更精确的城市边界判断：
+### Adding Boundary Data Support
+You can add boundary coordinate points to city data for more precise city boundary detection:
 
 ```json
 {
-  "Province": "北京市",
-  "City": "北京市",
-  "District": "东城区",
+  "Province": "Beijing",
+  "City": "Beijing",
+  "District": "Dongcheng District",
   "CenterPoint": {
     "Latitude": 39.9042,
     "Longitude": 116.4074
@@ -164,12 +164,12 @@ PS> dotnet run sample-cities.csv 39.9042 116.4074
 }
 ```
 
-## 技术栈
+## Technology Stack
 
 - .NET 8.0
 - C# 12
-- System.Text.Json (JSON处理)
+- System.Text.Json (JSON processing)
 
-## 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request来改进这个项目！
+Welcome to submit Issues and Pull Requests to improve this project!
