@@ -1,13 +1,6 @@
 using System;
-using System.Collections.Gen        /// <summary>
-        /// Load DistrictData list from CSV file
-        /// CSV format compatible with DistrictFactory format: id,pid,deep,name,ext_path,geo,polygon
-        /// - id: string identifier (corresponds to CSV column 1)
-        /// - geo: "longitude latitude" format (corresponds to CSV column 6, space separated)
-        /// - polygon: "lng1 lat1,lng2 lat2;..." format (corresponds to CSV column 7, DistrictFactory format)
-        /// </summary>
-        /// <param name="csvFilePath">CSV file path</param>
-        /// <returns>DistrictData list</returns>ing System.IO;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NetTopologySuite.Geometries;
 
@@ -38,7 +31,6 @@ namespace CoordinateCsvConverter
         public DistrictData(string id, Coordinate? geo, List<Coordinate> polygon)
         {
             Id = id;
-            Geo = geo;
             Polygon = polygon ?? new List<Coordinate>();
         }
 
@@ -57,7 +49,7 @@ namespace CoordinateCsvConverter
         /// </summary>
         /// <param name="csvFilePath">CSV file path</param>
         /// <returns>DistrictData list</returns>
-        public static List<DistrictData> LoadFromCsv(string csvFilePath)
+    public static List<DistrictData> LoadFromCsv(string csvFilePath)
         {
             var result = new List<DistrictData>();
 

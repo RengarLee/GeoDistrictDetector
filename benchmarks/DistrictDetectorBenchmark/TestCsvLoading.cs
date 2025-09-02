@@ -15,9 +15,9 @@ namespace DistrictDetectorBenchmark
             
             if (File.Exists(csvPath))
             {
-                // Test DistrictFactory directly
-                var districts = DistrictFactory.LoadFromCsv(csvPath);
-                Console.WriteLine($"Number of districts loaded by DistrictFactory: {districts.Count}");
+                // Test DistrictLoader 直接加载
+                var districts = DistrictLoader.LoadFromCsv(csvPath);
+                Console.WriteLine($"Number of districts loaded by DistrictLoader: {districts.Count}");
                 
                 // Test DistrictDetectorFactory
                 try
