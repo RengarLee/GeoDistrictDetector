@@ -94,6 +94,6 @@ CREATE TABLE Districts (
 ## Requirements
 
 - .NET 8.0
-- SQL Server 2012+ or Azure SQL
+- SQL Server 
 - CSV file in district format
 

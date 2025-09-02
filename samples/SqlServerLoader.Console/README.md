@@ -1,11 +1,10 @@
 # SQL Server Loader Console Test
 
-This console application demonstrates how to load District data from SQL Server using both async and sync methods.
+This project demonstrates how to load region (district) data from SQL Server.
 
 ## Features
 
 - ✅ **Async Loading** - Core async implementation with cancellation support
-- ✅ **Sync Loading** - Compatibility wrapper for synchronous operations  
 - ✅ **Performance Metrics** - Loading time and throughput measurement
 - ✅ **Data Validation** - Geometry and coordinate validation
 - ✅ **Batch Processing** - Configurable batch sizes for optimal performance
@@ -51,7 +50,7 @@ dotnet run "Server=tcp:yourserver.database.windows.net,1433;Initial Catalog=GeoD
 | Parameter | Description | Default | Example |
 |-----------|-------------|---------|---------|
 | `connection_string` | SQL Server connection string | localhost with Windows Auth | See examples above |
-| `table_name` | Database table name | `Districts` | `Districts`, `GeoData`, etc. |
+| `table_name` | Database table name | `Districts` | The name of the table where the data is stored |
 | `batch_size` | Records per batch | `1000` | `500`, `2000`, `5000` |
 
 ## Expected Output
@@ -80,26 +79,10 @@ Batch Size: 1000
    City: 1,234 districts
    County: 44,410 districts
 
-==================================================
-🔄 Testing SYNC loading from SQL Server (compatibility)
-
-✅ Sync loading completed successfully!
-📊 Results:
-   Total Districts: 45,678 districts
-   Loading Time: 2.41 seconds
-   Records/Second: 18,956
-
-🔍 Data Validation:
-   Valid Polygons: 45,234 (99.0%)
-   Valid Coordinates: 45,678 (100.0%)
-```
-
 ## Performance Tips
 
 - **Batch Size**: Larger batches (2000-5000) are generally faster for large datasets
-- **Network**: Use connection pooling for production scenarios
 - **Memory**: Monitor memory usage with very large datasets
-- **Async**: Prefer async methods for better scalability
 
 ## Troubleshooting
 
