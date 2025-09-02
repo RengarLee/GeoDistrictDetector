@@ -1,175 +1,114 @@
-# GeoLocationCityDetector
+# GeoDistrictDetector
 
-A .NET command-line tool for determining city information based on geographic coordinates.
+A .NET solution for geographic region detection, coordinate conversion, and data import/export, focused on Chinese administrative divisions.
 
-## Features
+## Main Features
 
-- 🗺️ **Coordinate City Query**: Find city information based on latitude and longitude coordinates
-- 📁 **Multi-format Support**: Supports CSV and JSON format city data files
-- 🎯 **Precise Algorithm**: Uses Haversine formula for distance calculation, supports polygon boundary detection
-- 💻 **CLI Friendly**: Supports command-line parameters and interactive mode
-- ⚡ **High Performance**: Asynchronous processing, supports large city datasets
+- Administrative region detection by coordinates
+- Coordinate system conversion (WGS84, GCJ02, BD09)
+- CSV and SQL Server data import/export
+- Console tools and demos
 
 ## Quick Start
 
-### Build Project
-
-```bash
-dotnet build
-```
-
-### Run Project
-
-#### 1. Interactive Mode
-```bash
-dotnet run
-```
-
-#### 2. Command Line Mode
-```bash
-dotnet run sample-cities.csv 39.9042 116.4074
-```
-
-## Usage
-
-### Data File Format
-
-#### CSV Format
-```csv
-Province,City,District,Longitude,Latitude
-Beijing,Beijing,Dongcheng District,116.4074,39.9042
-Shanghai,Shanghai,Huangpu District,121.4692,31.2301
-```
-
-#### JSON Format
-```json
-[
-  {
-    "Province": "Beijing",
-    "City": "Beijing",
-    "District": "Dongcheng District",
-    "CenterPoint": {
-      "Latitude": 39.9042,
-      "Longitude": 116.4074
-    },
-    "Boundary": []
-  }
-]
-```
-
-### Coordinate Format
-
-Supports the following coordinate input formats:
-- `39.9042,116.4074`
-- `39.9042, 116.4074`
-- `39.9042 116.4074`
-- `(39.9042, 116.4074)`
-
-## Project Structure
-
-```
-GeoLocationCityDetector/
-├── Models/
-│   ├── GeoPoint.cs          # Geographic coordinate point model
-│   └── CityInfo.cs          # City information model
-├── Services/
-│   ├── IGeoLocationService.cs   # Geographic location service interface
-│   └── GeoLocationService.cs    # Geographic location service implementation
-├── Utils/
-│   └── InputValidator.cs    # Input validation utility
-├── Program.cs               # Main program entry
-└── sample-cities.csv        # Sample city data
-```
-
-## Core Algorithm
-
-### 1. Distance Calculation
-Uses Haversine formula to calculate spherical distance between two geographic coordinate points:
+### 1. Load Data Quickly
+Load administrative division data from CSV:
 
 ```csharp
-double a = Math.Sin(deltaLatRad / 2) * Math.Sin(deltaLatRad / 2) +
-           Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
-           Math.Sin(deltaLonRad / 2) * Math.Sin(deltaLonRad / 2);
-double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-return earthRadius * c;
+using GeoDistrictDetector.Services;
+
+var detector = DistrictDetectorFactory.CreateFromCsv("libs/GeoDistrictDetector/sample-cities.csv");
+Console.WriteLine($"Loaded {detector.GetAllDistricts().Count} districts");
 ```
 
-### 2. Point in Polygon Detection
-Uses ray casting algorithm to determine if a point is inside polygon boundaries (when boundary data is available).
+### 2. Query Region by Coordinates
+Find the administrative region for a specific point:
 
-## Example Usage
-
-### Interactive Mode Example
-
-```
-=== Geographic Location City Detector ===
-
-Please select an operation:
-1. Load city data file
-2. Query city by coordinates
-3. Display loaded city count
-4. Exit
-Please enter option (1-4): 1
-
-Please enter city data file path (supports CSV and JSON formats): sample-cities.csv
-Successfully loaded 22 city data entries
-City data loaded successfully!
-
-Please select an operation:
-1. Load city data file
-2. Query city by coordinates
-3. Display loaded city count
-4. Exit
-Please enter option (1-4): 2
-
-Please enter coordinates (format: latitude,longitude, e.g.: 39.9042,116.4074): 39.9042,116.4074
-Query result:
-  Coordinates: (39.9042, 116.4074)
-  City: Beijing - Beijing - Dongcheng District
-  City center: (39.9042, 116.4074)
+```csharp
+var (province, city, district) = detector.FindCompleteAddressByCoordinate(116.4, 39.9);
+Console.WriteLine($"Province: {province?.Name}, City: {city?.Name}, District: {district?.Name}");
 ```
 
-### Command Line Mode Example
-
-```bash
-PS> dotnet run sample-cities.csv 39.9042 116.4074
-=== Geographic Location City Detector ===
-
-Loading data file: sample-cities.csv
-Successfully loaded 22 city data entries
-Query coordinates: (39.9042, 116.4074)
-Result: Beijing - Beijing - Dongcheng District
+#### Query Province Only
+```csharp
+var province = detector.FindProvinceByCoordinate(116.4, 39.9);
+Console.WriteLine($"Province: {province?.Name ?? "Not found"}");
 ```
 
-## Extended Features
+#### Query City Only
+```csharp
+var city = detector.FindCityByCoordinate(116.4, 39.9);
+Console.WriteLine($"City: {city?.Name ?? "Not found"}");
+```
 
-### Adding Boundary Data Support
-You can add boundary coordinate points to city data for more precise city boundary detection:
+#### Query County/District Only
+```csharp
+var county = detector.FindCountyByCoordinate(116.4, 39.9);
+Console.WriteLine($"County: {county?.Name ?? "Not found"}");
+```
 
-```json
+#### Return Value Structure
+All query methods return `District` objects or tuples of `District` objects. Each `District` has the following properties:
+
+- **Id**: Unique identifier (integer)
+- **Name**: Administrative division name (string)
+- **Pid**: Parent division ID (integer, null for provinces)
+- **Deep**: Administrative level (Province = 1, City = 2, County = 3)
+- **ExtPath**: Full hierarchical path (e.g., "Beijing/Chaoyang District")
+- **Geo**: Center coordinate point (longitude latitude format)
+- **Polygon**: Boundary polygon coordinates (WKT format)
+
+Example of accessing individual properties:
+```csharp
+var province = detector.FindProvinceByCoordinate(116.4, 39.9);
+if (province != null)
 {
-  "Province": "Beijing",
-  "City": "Beijing",
-  "District": "Dongcheng District",
-  "CenterPoint": {
-    "Latitude": 39.9042,
-    "Longitude": 116.4074
-  },
-  "Boundary": [
-    {"Latitude": 39.9100, "Longitude": 116.4000},
-    {"Latitude": 39.9100, "Longitude": 116.4100},
-    {"Latitude": 39.9000, "Longitude": 116.4100},
-    {"Latitude": 39.9000, "Longitude": 116.4000}
-  ]
+    Console.WriteLine($"ID: {province.Id}");
+    Console.WriteLine($"Name: {province.Name}");
+    Console.WriteLine($"Level: {province.Deep}");
+    Console.WriteLine($"Path: {province.ExtPath}");
 }
 ```
 
-## Technology Stack
+### 3. Batch Query Points
+Process multiple coordinates in a loop:
 
-- .NET 8.0
-- C# 12
-- System.Text.Json (JSON processing)
+```csharp
+var points = new[] { (116.4, 39.9), (121.5, 31.2), (113.3, 23.1) };
+foreach (var (lng, lat) in points)
+{
+    var (province, city, district) = detector.FindCompleteAddressByCoordinate(lng, lat);
+    Console.WriteLine($"{lng},{lat} -> {province?.Name}/{city?.Name}/{district?.Name}");
+}
+```
 
-## Contributing
+For command-line usage, run the demo:
 
-Welcome to submit Issues and Pull Requests to improve this project!
+```bash
+dotnet run --project samples/DistrictDetector.Console
+```
+
+
+## Project Structure
+GeoDistrictDetector/
+├── libs/
+│   └── GeoDistrictDetector/          # Core library
+├── benchmarks/
+│   └── DistrictDetectorBenchmark/    # Performance benchmarks
+├── samples/
+│   ├── CoordinateConversion.Console/ # Coordinate conversion demo
+│   ├── DistrictDetector.Console/     # District detection demo
+│   └── SqlServerLoader.Console/      # SQL Server loading demo
+├── tools/
+│   ├── CoordinateCsvConverter.Console/ # CSV coordinate converter
+│   ├── CsvToSqlServerImporter.Console/ # SQL Server importer
+│   └── ConsoleProgressBar.cs         # Progress bar utility
+
+## Requirements
+
+- .NET 8.0 or later
+- For SQL Server tools: a running SQL Server instance
+
+## License
+
+MIT

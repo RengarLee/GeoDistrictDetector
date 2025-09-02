@@ -10,188 +10,247 @@ using GeoDistrictDetector;
 
 namespace GeoDistrictDetector.Services
 {
-        public class DistrictDetector : IDistrictDetector
+    public class DistrictDetector : IDistrictDetector
+    {
+        private List<District> _districts = new List<District>();
+        private STRtree<District> _provinceIndex = new STRtree<District>();
+        private Dictionary<int, STRtree<District>> _provinceCityTrees = new Dictionary<int, STRtree<District>>(); // ProvinceId->City RTree
+        private Dictionary<int, STRtree<District>> _cityCountyTrees = new Dictionary<int, STRtree<District>>();   // CityId->County RTree
+        private Dictionary<int, IPreparedGeometry> _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
+
+        /// <summary>
+        /// Load District data and build spatial index
+        /// </summary>
+        public void LoadDistrictData(List<District> districts)
         {
-            private List<District> _districts = new List<District>();
-            private STRtree<District> _provinceIndex = new STRtree<District>();
-            private Dictionary<int, STRtree<District>> _provinceCityTrees = new Dictionary<int, STRtree<District>>(); // ProvinceId->City RTree
-            private Dictionary<int, STRtree<District>> _cityCountyTrees = new Dictionary<int, STRtree<District>>();   // CityId->County RTree
-            private Dictionary<int, IPreparedGeometry> _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
+            _districts = districts ?? new List<District>();
+            BuildSpatialIndex();
+        }
 
-            /// <summary>
-            /// Load District data and build spatial index
-            /// </summary>
-            public void LoadDistrictData(List<District> districts)
+        /// <summary>
+        /// Asynchronously load District data and build spatial index
+        /// </summary>
+        public async Task LoadDistrictDataAsync(List<District> districts)
+        {
+            await Task.Run(() => LoadDistrictData(districts));
+        }
+
+        private void BuildSpatialIndex()
+        {
+            _provinceIndex = new STRtree<District>();
+            _provinceCityTrees = new Dictionary<int, STRtree<District>>();
+            _cityCountyTrees = new Dictionary<int, STRtree<District>>();
+            _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
+
+            // 1. Province spatial index
+            foreach (var province in _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.Province))
             {
-                _districts = districts ?? new List<District>();
-                BuildSpatialIndex();
+                _provinceIndex.Insert(province.Polygon.EnvelopeInternal, province);
+                _preparedGeometries[province.Id] = PreparedGeometryFactory.Prepare(province.Polygon);
             }
 
-            /// <summary>
-            /// Asynchronously load District data and build spatial index
-            /// </summary>
-            public async Task LoadDistrictDataAsync(List<District> districts)
+            // 2. Build city RTree for each province
+            var cities = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.City);
+            var provinceGroups = cities.GroupBy(c => c.Pid);
+            foreach (var group in provinceGroups)
             {
-                await Task.Run(() => LoadDistrictData(districts));
-            }
-
-            private void BuildSpatialIndex()
-            {
-                _provinceIndex = new STRtree<District>();
-                _provinceCityTrees = new Dictionary<int, STRtree<District>>();
-                _cityCountyTrees = new Dictionary<int, STRtree<District>>();
-                _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
-
-                // 1. Province spatial index
-                foreach (var province in _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.Province))
+                var cityTree = new STRtree<District>();
+                foreach (var city in group)
                 {
-                    _provinceIndex.Insert(province.Polygon.EnvelopeInternal, province);
-                    _preparedGeometries[province.Id] = PreparedGeometryFactory.Prepare(province.Polygon);
+                    cityTree.Insert(city.Polygon.EnvelopeInternal, city);
+                    _preparedGeometries[city.Id] = PreparedGeometryFactory.Prepare(city.Polygon);
                 }
+                _provinceCityTrees[group.Key] = cityTree;
+            }
 
-                // 2. Build city RTree for each province
-                var cities = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.City);
-                var provinceGroups = cities.GroupBy(c => c.Pid);
-                foreach (var group in provinceGroups)
+            // 3. Build county RTree for each city
+            var counties = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.County);
+            var cityGroups = counties.GroupBy(c => c.Pid);
+            foreach (var group in cityGroups)
+            {
+                var countyTree = new STRtree<District>();
+                foreach (var county in group)
                 {
-                    var cityTree = new STRtree<District>();
-                    foreach (var city in group)
-                    {
-                        cityTree.Insert(city.Polygon.EnvelopeInternal, city);
-                        _preparedGeometries[city.Id] = PreparedGeometryFactory.Prepare(city.Polygon);
-                    }
-                    _provinceCityTrees[group.Key] = cityTree;
+                    countyTree.Insert(county.Polygon.EnvelopeInternal, county);
+                    _preparedGeometries[county.Id] = PreparedGeometryFactory.Prepare(county.Polygon);
                 }
+                _cityCountyTrees[group.Key] = countyTree;
+            }
+        }
 
-                // 3. Build county RTree for each city
-                var counties = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.County);
-                var cityGroups = counties.GroupBy(c => c.Pid);
-                foreach (var group in cityGroups)
+        /// <summary>
+        /// Get all district data
+        /// </summary>
+        public List<District> GetAllDistricts()
+        {
+            return _districts.ToList();
+        }
+
+        /// <summary>
+        /// Validate longitude and latitude parameters
+        /// </summary>
+        private void ValidateCoordinates(double longitude, double latitude)
+        {
+            if (_districts.Count == 0)
+                throw new InvalidOperationException("District data not loaded, please call LoadDistrictDataAsync method first");
+            if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
+                throw new ArgumentException("Longitude and latitude parameters are out of valid range");
+        }
+
+        /// <summary>
+        /// Find the first District that contains the point from candidate regions
+        /// </summary>
+        private District? FindFirstMatchingDistrict(IEnumerable<District> candidates, Point point)
+        {
+            foreach (var district in candidates)
+            {
+                if (_preparedGeometries.ContainsKey(district.Id) &&
+                    _preparedGeometries[district.Id].Covers(point))
                 {
-                    var countyTree = new STRtree<District>();
-                    foreach (var county in group)
-                    {
-                        countyTree.Insert(county.Polygon.EnvelopeInternal, county);
-                        _preparedGeometries[county.Id] = PreparedGeometryFactory.Prepare(county.Polygon);
-                    }
-                    _cityCountyTrees[group.Key] = countyTree;
+                    return district;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Find the province by longitude and latitude coordinates
+        /// </summary>
+        public District? FindProvinceByCoordinate(double longitude, double latitude)
+        {
+            ValidateCoordinates(longitude, latitude);
+            var point = new Point(longitude, latitude);
+
+            var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
+            return FindFirstMatchingDistrict(provinceCandidates, point);
+        }
+
+        /// <summary>
+        /// Find the city by longitude and latitude coordinates
+        /// </summary>
+        public District? FindCityByCoordinate(double longitude, double latitude)
+        {
+            ValidateCoordinates(longitude, latitude);
+            var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
+
+            var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
+
+            foreach (var province in provinceCandidates)
+            {
+                if (_provinceCityTrees.TryGetValue(province.Id, out var cityTree))
+                {
+                    var cityCandidates = cityTree.Query(point.EnvelopeInternal);
+                    var result = FindFirstMatchingDistrict(cityCandidates, point);
+                    if (result != null) return result;
                 }
             }
 
-            /// <summary>
-            /// Get all district data
-            /// </summary>
-            public List<District> GetAllDistricts()
-            {
-                return _districts.ToList();
-            }
+            return null;
+        }
 
-            /// <summary>
-            /// Validate longitude and latitude parameters
-            /// </summary>
-            private void ValidateCoordinates(double longitude, double latitude)
-            {
-                if (_districts.Count == 0)
-                    throw new InvalidOperationException("District data not loaded, please call LoadDistrictDataAsync method first");
-                if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
-                    throw new ArgumentException("Longitude and latitude parameters are out of valid range");
-            }
+        /// <summary>
+        /// Find the county by longitude and latitude coordinates
+        /// </summary>
+        public District? FindCountyByCoordinate(double longitude, double latitude)
+        {
+            ValidateCoordinates(longitude, latitude);
+            var point = new Point(longitude, latitude);
 
-            /// <summary>
-            /// Find the first District that contains the point from candidate regions
-            /// </summary>
-            private District? FindFirstMatchingDistrict(IEnumerable<District> candidates, Point point)
+            var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
+
+            foreach (var province in provinceCandidates)
             {
-                foreach (var district in candidates)
+                if (_provinceCityTrees.TryGetValue(province.Id, out var cityTree))
                 {
-                    if (_preparedGeometries.ContainsKey(district.Id) && 
-                        _preparedGeometries[district.Id].Covers(point))
-                    {
-                        return district;
-                    }
-                }
-                return null;
-            }
+                    var cityCandidates = cityTree.Query(point.EnvelopeInternal);
 
-            /// <summary>
-            /// Find the province by longitude and latitude coordinates
-            /// </summary>
-            public District? FindProvinceByCoordinate(double longitude, double latitude)
-            {
-                ValidateCoordinates(longitude, latitude);
-                var point = new Point(longitude, latitude);
-                
-                var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
-                return FindFirstMatchingDistrict(provinceCandidates, point);
-            }
-
-            /// <summary>
-            /// Find the city by longitude and latitude coordinates
-            /// </summary>
-            public District? FindCityByCoordinate(double longitude, double latitude)
-            {
-                ValidateCoordinates(longitude, latitude);
-                var point = new NetTopologySuite.Geometries.Point(longitude, latitude);
-                
-                var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
-                
-                foreach (var province in provinceCandidates)
-                {
-                    if (_provinceCityTrees.TryGetValue(province.Id, out var cityTree))
+                    foreach (var city in cityCandidates)
                     {
-                        var cityCandidates = cityTree.Query(point.EnvelopeInternal);
-                        var result = FindFirstMatchingDistrict(cityCandidates, point);
-                        if (result != null) return result;
-                    }
-                }
-                
-                return null;
-            }
-
-            /// <summary>
-            /// Find the county by longitude and latitude coordinates
-            /// </summary>
-            public District? FindCountyByCoordinate(double longitude, double latitude)
-            {
-                ValidateCoordinates(longitude, latitude);
-                var point = new Point(longitude, latitude);
-                
-                var provinceCandidates = _provinceIndex.Query(point.EnvelopeInternal);
-                
-                foreach (var province in provinceCandidates)
-                {
-                    if (_provinceCityTrees.TryGetValue(province.Id, out var cityTree))
-                    {
-                        var cityCandidates = cityTree.Query(point.EnvelopeInternal);
-                        
-                        foreach (var city in cityCandidates)
+                        if (_cityCountyTrees.TryGetValue(city.Id, out var countyTree))
                         {
-                            if (_cityCountyTrees.TryGetValue(city.Id, out var countyTree))
-                            {
-                                var countyCandidates = countyTree.Query(point.EnvelopeInternal);
-                                var result = FindFirstMatchingDistrict(countyCandidates, point);
-                                if (result != null) return result;
-                            }
+                            var countyCandidates = countyTree.Query(point.EnvelopeInternal);
+                            var result = FindFirstMatchingDistrict(countyCandidates, point);
+                            if (result != null) return result;
                         }
                     }
                 }
-                
-                return null;
             }
 
-            /// <summary>
-            /// Find complete administrative division information (province, city, county) by longitude and latitude coordinates
-            /// </summary>
-            /// <param name="longitude">Longitude</param>
-            /// <param name="latitude">Latitude</param>
-            /// <returns>Tuple containing province, city, and county information</returns>
-            public (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude)
-            {
-                var province = FindProvinceByCoordinate(longitude, latitude);
-                var city = FindCityByCoordinate(longitude, latitude);
-                var district = FindCountyByCoordinate(longitude, latitude);
-                
-                return (province, city, district);
-            }
+            return null;
         }
+
+        /// <summary>
+        /// Find complete administrative division information (province, city, county) by longitude and latitude coordinates
+        /// </summary>
+        /// <param name="longitude">Longitude</param>
+        /// <param name="latitude">Latitude</param>
+        /// <returns>Tuple containing province, city, and county information</returns>
+        public (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude)
+        {
+            var province = FindProvinceByCoordinate(longitude, latitude);
+            var city = FindCityByCoordinate(longitude, latitude);
+            var district = FindCountyByCoordinate(longitude, latitude);
+
+            return (province, city, district);
+        }
+
+        /// <summary>
+        /// Find a District by its Id
+        /// </summary>
+        public District? FindDistrictById(int id)
+        {
+            return _districts.FirstOrDefault(d => d.Id == id);
+        }
+
+
+        /// <summary>
+        /// Find provinces by a list of coordinates
+        /// </summary>
+        /// <param name="coordinates"></param>
+        /// <returns></returns>
+
+        public List<District?> FindProvinceByCoordinates(List<(double Longitude, double Latitude)> coordinates)
+        {
+            var results = new District?[coordinates.Count];
+            Parallel.For(0, coordinates.Count, i =>
+            {
+                var coord = coordinates[i];
+                results[i] = FindProvinceByCoordinate(coord.Longitude, coord.Latitude);
+            });
+            return results.ToList();
+        }
+
+        /// <summary>
+        /// Find cities by a list of coordinates
+        /// </summary>
+        /// <param name="coordinates"></param>
+        /// <returns></returns>
+        public List<District?> FindCityByCoordinates(List<(double Longitude, double Latitude)> coordinates)
+        {
+            var results = new District?[coordinates.Count];
+            Parallel.For(0, coordinates.Count, i =>
+            {
+                var coord = coordinates[i];
+                results[i] = FindCityByCoordinate(coord.Longitude, coord.Latitude);
+            });
+            return results.ToList();
+        }
+
+        /// <summary>
+        /// Find counties by a list of coordinates
+        /// </summary>
+        /// <param name="coordinates"></param>
+        /// <returns></returns>
+        public List<District?> FindCountyByCoordinates(List<(double Longitude, double Latitude)> coordinates)
+        {
+            var results = new District?[coordinates.Count];
+            Parallel.For(0, coordinates.Count, i =>
+            {
+                var coord = coordinates[i];
+                results[i] = FindCountyByCoordinate(coord.Longitude, coord.Latitude);
+            });
+            return results.ToList();
+        }
+
+    }
 }
