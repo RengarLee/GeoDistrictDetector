@@ -11,7 +11,23 @@ A .NET solution for geographic region detection, coordinate conversion, and data
 
 ## Quick Start
 
-### 1. Load Data Quickly
+### 1. Data Import and Coordinate Conversion
+
+#### Import Data to Database
+If you want to import data into your database, you can use the `CsvToSqlServerImporter.Console` tool:
+
+```bash
+dotnet run --project tools/CsvToSqlServerImporter.Console
+```
+
+#### Convert Coordinate Systems in CSV
+If you need to change the coordinate system of points in your CSV file, you can use the `CoordinateConversion.Console` tool:
+
+```bash
+dotnet run --project samples/CoordinateConversion.Console
+```
+
+### 2. Load Data Quickly
 Load administrative division data from CSV:
 
 ```csharp
@@ -21,7 +37,7 @@ var detector = DistrictDetectorFactory.CreateFromCsv("libs/GeoDistrictDetector/s
 Console.WriteLine($"Loaded {detector.GetAllDistricts().Count} districts");
 ```
 
-### 2. Query Region by Coordinates
+### 3. Query Region by Coordinates
 Find the administrative region for a specific point:
 
 ```csharp
@@ -70,7 +86,7 @@ if (province != null)
 }
 ```
 
-### 3. Batch Query Points
+### 4. Batch Query Points
 Process multiple coordinates in a loop:
 
 ```csharp
