@@ -112,3 +112,9 @@ GeoDistrictDetector/
 ## License
 
 MIT
+
+## Data Source
+
+This project uses data from [AreaCity-JsSpider-StatsGov](https://github.com/xiangyuecn/AreaCity-JsSpider-StatsGov?tab=readme-ov-file#%E5%AD%97%E6%AE%B5ok_geocsv---%E5%9D%90%E6%A0%87%E8%BE%B2%E7%95%8C%E8%A1%A8), which provides administrative division data in CSV format that can be directly used with this library.
+
+Special thanks to the AreaCity-JsSpider-StatsGov project for providing the data source.
