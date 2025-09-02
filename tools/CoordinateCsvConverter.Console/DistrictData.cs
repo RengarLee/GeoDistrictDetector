@@ -31,7 +31,6 @@ namespace CoordinateCsvConverter
         public DistrictData(string id, Coordinate? geo, List<Coordinate> polygon)
         {
             Id = id;
-            Geo = geo;
             Polygon = polygon ?? new List<Coordinate>();
         }
 
@@ -42,15 +41,15 @@ namespace CoordinateCsvConverter
         }
 
         /// <summary>
-        /// 从CSV文件读取DistrictData列表
-        /// CSV格式兼容DistrictFactory格式：id,pid,deep,name,ext_path,geo,polygon
-        /// - id: 字符串标识符（对应CSV第1列）
-        /// - geo: "经度 纬度" 格式（对应CSV第6列，空格分隔）
-        /// - polygon: "经度1 纬度1,经度2 纬度2;..." 格式（对应CSV第7列，DistrictFactory格式）
+        /// Load DistrictData list from CSV file
+        /// CSV format compatible with DistrictFactory format: id,pid,deep,name,ext_path,geo,polygon
+        /// - id: string identifier (corresponds to CSV column 1)
+        /// - geo: "longitude latitude" format (corresponds to CSV column 6, space separated)
+        /// - polygon: "lng1 lat1,lng2 lat2;..." format (corresponds to CSV column 7, DistrictFactory format)
         /// </summary>
-        /// <param name="csvFilePath">CSV文件路径</param>
-        /// <returns>DistrictData列表</returns>
-        public static List<DistrictData> LoadFromCsv(string csvFilePath)
+        /// <param name="csvFilePath">CSV file path</param>
+        /// <returns>DistrictData list</returns>
+    public static List<DistrictData> LoadFromCsv(string csvFilePath)
         {
             var result = new List<DistrictData>();
 
@@ -104,13 +103,13 @@ namespace CoordinateCsvConverter
                 throw new ArgumentException($"CSV row has less than 7 fields: {csvLine}");
             }
 
-            // 解析ID（第1列）
+            // Parse ID (column 1)
             string id = fields[0].Trim().Trim('"');
 
-            // 解析geo坐标（第6列，索引5）
+            // Parse geo coordinate (column 6, index 5)
             var geo = ParseGeoCoordinate(fields[5].Trim().Trim('"', '\\'));
 
-            // 解析polygon坐标列表（第7列，索引6）
+            // Parse polygon coordinate list (column 7, index 6)
             var polygon = ParsePolygonCoordinates(fields[6].Trim().Trim('"', '\\'));
 
             return new DistrictData(id, geo, polygon);
@@ -138,7 +137,7 @@ namespace CoordinateCsvConverter
                 return null;
             }
 
-            // 优先尝试空格分隔格式（DistrictFactory格式）
+            // Try space-separated format first (DistrictFactory format)
             var parts = geoString.Split(' ');
             if (parts.Length == 2)
             {
@@ -149,7 +148,7 @@ namespace CoordinateCsvConverter
                 }
             }
 
-            // 回退到逗号分隔格式
+            // Fall back to comma-separated format
             parts = geoString.Split(',');
             if (parts.Length == 2)
             {
@@ -180,14 +179,14 @@ namespace CoordinateCsvConverter
                 return coordinates;
             }
 
-            // DistrictFactory格式：分号分隔多个坐标块
+            // DistrictFactory format: semicolon separates multiple coordinate blocks
             var blocks = polygonString.Split(';');
             foreach (var block in blocks)
             {
                 if (string.IsNullOrWhiteSpace(block))
                     continue;
 
-                // 逗号分隔坐标对
+                // Comma separates coordinate pairs
                 var coordPairs = block.Split(',');
                 foreach (var coordPair in coordPairs)
                 {
@@ -195,7 +194,7 @@ namespace CoordinateCsvConverter
                     if (string.IsNullOrWhiteSpace(trimmedPair))
                         continue;
 
-                    // 空格分隔经纬度（DistrictFactory格式）
+                    // Space separates longitude/latitude (DistrictFactory format)
                     var lngLat = trimmedPair.Split(' ');
                     if (lngLat.Length == 2 &&
                         double.TryParse(lngLat[0], out double lng) &&

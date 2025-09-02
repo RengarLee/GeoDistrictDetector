@@ -10,13 +10,13 @@ class Program
     {
         try
         {
-            Console.WriteLine("=== DistrictDetector.Console: 完整地址查找测试 ===");
+            Console.WriteLine("=== DistrictDetector.Console: Complete Address Lookup Test ===");
             var detector = CreateDetector();
             TestCompleteAddressLookup(detector);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"启动失败: {ex.Message}");
+            Console.WriteLine($"Startup failed: {ex.Message}");
             Environment.Exit(1);
         }
     }
@@ -24,46 +24,46 @@ class Program
     static DistrictDetector CreateDetector()
     {
         string csvPath = "../../libs/GeoDistrictDetector/sample-cities.csv";
-        Console.WriteLine($"尝试从CSV加载数据: {csvPath}");
+        Console.WriteLine($"Attempting to load data from CSV: {csvPath}");
 
         var detector = DistrictDetectorFactory.CreateFromCsv(csvPath);
-        Console.WriteLine("✓ 从CSV文件成功加载数据");
+        Console.WriteLine("✓ Successfully loaded data from CSV file");
         
         var districts = detector.GetAllDistricts();
-        Console.WriteLine($"  共加载了 {districts.Count} 个行政区");
+        Console.WriteLine($"  Total loaded {districts.Count} administrative districts");
         var provinces = districts.Where(d => d.Deep == DistrictLevel.Province).Count();
         var cities = districts.Where(d => d.Deep == DistrictLevel.City).Count();
         var counties = districts.Where(d => d.Deep == DistrictLevel.County).Count();
-        Console.WriteLine($"  省份: {provinces}, 城市: {cities}, 县区: {counties}");
+        Console.WriteLine($"  Provinces: {provinces}, Cities: {cities}, Counties: {counties}");
         
         return detector;
     }
 
     static void TestCompleteAddressLookup(DistrictDetector detector)
     {
-        Console.WriteLine("\n=== 完整地址查找功能测试 ===");
+        Console.WriteLine("\n=== Complete Address Lookup Function Test ===");
 
         var testPoints = new[]
         {
-            new { Name = "深圳市区", Lng = 114.0579, Lat = 22.5431 },
-            new { Name = "北京市区", Lng = 116.4074, Lat = 39.9042 },
-            new { Name = "上海市区", Lng = 121.4737, Lat = 31.2304 },
-            new { Name = "无效坐标", Lng = 0.0, Lat = 0.0 }
+            new { Name = "Shenzhen City Center", Lng = 114.0579, Lat = 22.5431 },
+            new { Name = "Beijing City Center", Lng = 116.4074, Lat = 39.9042 },
+            new { Name = "Shanghai City Center", Lng = 121.4737, Lat = 31.2304 },
+            new { Name = "Invalid Coordinates", Lng = 0.0, Lat = 0.0 }
         };
 
         foreach (var point in testPoints)
         {
-            Console.WriteLine($"\n测试坐标: {point.Name} ({point.Lng}, {point.Lat})");
+            Console.WriteLine($"\nTest coordinates: {point.Name} ({point.Lng}, {point.Lat})");
             var (province, city, district) = detector.FindCompleteAddressByCoordinate(point.Lng, point.Lat);
             if (province != null || city != null || district != null)
             {
-                Console.WriteLine($"  省份: {province?.Name ?? "未找到"}");
-                Console.WriteLine($"  城市: {city?.Name ?? "未找到"}");
-                Console.WriteLine($"  区县: {district?.Name ?? "未找到"}");
+                Console.WriteLine($"  Province: {province?.Name ?? "Not found"}");
+                Console.WriteLine($"  City: {city?.Name ?? "Not found"}");
+                Console.WriteLine($"  District: {district?.Name ?? "Not found"}");
             }
             else
             {
-                Console.WriteLine("  未找到匹配的行政区");
+                Console.WriteLine("  No matching administrative district found");
             }
         }
     }

@@ -1,7 +1,7 @@
 namespace GeoDistrictDetector.Models
 {
     /// <summary>
-    /// 行政区划层级
+    /// Administrative division level
     /// </summary>
     public enum DistrictLevel
     {

@@ -5,7 +5,7 @@ using NetTopologySuite.Geometries;
 namespace GeoDistrictDetector.Models
 {
     /// <summary>
-    /// 行政区域对象，对应 sample-distances.csv 的每一行。
+    /// Administrative district object, corresponding to each row in sample-distances.csv.
     /// </summary>
     public class District
     {
@@ -26,37 +26,37 @@ namespace GeoDistrictDetector.Models
         }
 
         /// <summary>
-        /// 区域ID。
+        /// District ID.
         /// </summary>
         public int Id { get; set; }
 
         /// <summary>
-        /// 上级ID。
+        /// Parent ID.
         /// </summary>
         public int Pid { get; set; }
 
         /// <summary>
-        /// 层级深度。
+        /// Level depth.
         /// </summary>
         public DistrictLevel Deep { get; set; }
 
         /// <summary>
-        /// 区域名称，如：罗湖区，城市完整名称。
+        /// District name, such as: Luohu District, full city name.
         /// </summary>
         public string? Name { get; set; }
 
         /// <summary>
-        /// 省市区三级完整名称，中间用空格分隔，如：广东省 深圳市 罗湖区。
+        /// Complete name of province, city, and district levels, separated by spaces, such as: Guangdong Province Shenzhen City Luohu District.
         /// </summary>
         public string? ExtPath { get; set; }
 
         /// <summary>
-        /// 城市中心坐标，高德地图GCJ-02火星坐标系。格式：Coordinate 类型。
+        /// City center coordinates, AMap GCJ-02 Mars coordinate system. Format: Coordinate type.
         /// </summary>
         public Coordinate Geo { get; set; }
 
         /// <summary>
-        /// 行政区域边界，空间数据类型。建议用 NetTopologySuite.Geometries.Geometry 存储。
+        /// Administrative district boundary, spatial data type. Recommended to use NetTopologySuite.Geometries.Geometry for storage.
         /// </summary>
         public Geometry Polygon { get; set; } = new GeometryCollection(null);
     }

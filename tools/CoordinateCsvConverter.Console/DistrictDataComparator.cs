@@ -189,7 +189,7 @@ namespace CoordinateCsvConverter
         /// <param name="leftSystem">Left coordinate system</param>
         /// <param name="rightSystem">Right coordinate system</param>
         /// <returns>Error message, empty string if no error</returns>
-        private string ComparePolygonCoordinates(List<Coordinate> leftPolygon, List<Coordinate> rightPolygon,
+        private string ComparePolygonCoordinates(List<Coordinate>? leftPolygon, List<Coordinate>? rightPolygon,
             CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
             if ((leftPolygon == null || leftPolygon.Count == 0) &&
@@ -357,7 +357,7 @@ namespace CoordinateCsvConverter
         /// <param name="leftSystem">Left coordinate system</param>
         /// <param name="rightSystem">Right coordinate system</param>
         /// <returns>Error message, empty string if no error</returns>
-        private string ComparePolygonCoordinatesWithEmpty(List<Coordinate> leftPolygon, List<Coordinate> rightPolygon,
+        private string ComparePolygonCoordinatesWithEmpty(List<Coordinate>? leftPolygon, List<Coordinate>? rightPolygon,
             CoordinateSystem leftSystem, CoordinateSystem rightSystem)
         {
             // Improved EMPTY handling: both null/empty polygons are considered equal

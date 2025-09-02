@@ -14,12 +14,12 @@ namespace GeoDistrictDetector.Services
         {
             private List<District> _districts = new List<District>();
             private STRtree<District> _provinceIndex = new STRtree<District>();
-            private Dictionary<int, STRtree<District>> _provinceCityTrees = new Dictionary<int, STRtree<District>>(); // 省Id->城市RTree
-            private Dictionary<int, STRtree<District>> _cityCountyTrees = new Dictionary<int, STRtree<District>>();   // 城市Id->县区RTree
+            private Dictionary<int, STRtree<District>> _provinceCityTrees = new Dictionary<int, STRtree<District>>(); // ProvinceId->City RTree
+            private Dictionary<int, STRtree<District>> _cityCountyTrees = new Dictionary<int, STRtree<District>>();   // CityId->County RTree
             private Dictionary<int, IPreparedGeometry> _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
 
             /// <summary>
-            /// 加载District数据并构建空间索引
+            /// Load District data and build spatial index
             /// </summary>
             public void LoadDistrictData(List<District> districts)
             {
@@ -28,7 +28,7 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 异步加载District数据并构建空间索引
+            /// Asynchronously load District data and build spatial index
             /// </summary>
             public async Task LoadDistrictDataAsync(List<District> districts)
             {
@@ -42,14 +42,14 @@ namespace GeoDistrictDetector.Services
                 _cityCountyTrees = new Dictionary<int, STRtree<District>>();
                 _preparedGeometries = new Dictionary<int, IPreparedGeometry>();
 
-                // 1. 省份空间索引
+                // 1. Province spatial index
                 foreach (var province in _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.Province))
                 {
                     _provinceIndex.Insert(province.Polygon.EnvelopeInternal, province);
                     _preparedGeometries[province.Id] = PreparedGeometryFactory.Prepare(province.Polygon);
                 }
 
-                // 2. 每个省份构建自己的城市RTree
+                // 2. Build city RTree for each province
                 var cities = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.City);
                 var provinceGroups = cities.GroupBy(c => c.Pid);
                 foreach (var group in provinceGroups)
@@ -63,7 +63,7 @@ namespace GeoDistrictDetector.Services
                     _provinceCityTrees[group.Key] = cityTree;
                 }
 
-                // 3. 每个城市构建自己的县区RTree（county）
+                // 3. Build county RTree for each city
                 var counties = _districts.Where(d => d.Polygon != null && !d.Polygon.IsEmpty && d.Deep == DistrictLevel.County);
                 var cityGroups = counties.GroupBy(c => c.Pid);
                 foreach (var group in cityGroups)
@@ -79,7 +79,7 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 获取所有区划数据
+            /// Get all district data
             /// </summary>
             public List<District> GetAllDistricts()
             {
@@ -87,18 +87,18 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 验证经纬度参数
+            /// Validate longitude and latitude parameters
             /// </summary>
             private void ValidateCoordinates(double longitude, double latitude)
             {
                 if (_districts.Count == 0)
-                    throw new InvalidOperationException("区域数据未加载，请先调用 LoadDistrictDataAsync 方法");
+                    throw new InvalidOperationException("District data not loaded, please call LoadDistrictDataAsync method first");
                 if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
-                    throw new ArgumentException("经纬度参数超出有效范围");
+                    throw new ArgumentException("Longitude and latitude parameters are out of valid range");
             }
 
             /// <summary>
-            /// 在候选区域中查找第一个包含该点的District
+            /// Find the first District that contains the point from candidate regions
             /// </summary>
             private District? FindFirstMatchingDistrict(IEnumerable<District> candidates, Point point)
             {
@@ -114,7 +114,7 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 根据经纬度查找所属省份
+            /// Find the province by longitude and latitude coordinates
             /// </summary>
             public District? FindProvinceByCoordinate(double longitude, double latitude)
             {
@@ -126,7 +126,7 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 根据经纬度查找所属城市
+            /// Find the city by longitude and latitude coordinates
             /// </summary>
             public District? FindCityByCoordinate(double longitude, double latitude)
             {
@@ -149,7 +149,7 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 根据经纬度查找所属县区
+            /// Find the county by longitude and latitude coordinates
             /// </summary>
             public District? FindCountyByCoordinate(double longitude, double latitude)
             {
@@ -180,11 +180,11 @@ namespace GeoDistrictDetector.Services
             }
 
             /// <summary>
-            /// 根据经纬度查找完整的行政区划信息（省、市、县）
+            /// Find complete administrative division information (province, city, county) by longitude and latitude coordinates
             /// </summary>
-            /// <param name="longitude">经度</param>
-            /// <param name="latitude">纬度</param>
-            /// <returns>包含省市县信息的元组</returns>
+            /// <param name="longitude">Longitude</param>
+            /// <param name="latitude">Latitude</param>
+            /// <returns>Tuple containing province, city, and county information</returns>
             public (District? Province, District? City, District? District) FindCompleteAddressByCoordinate(double longitude, double latitude)
             {
                 var province = FindProvinceByCoordinate(longitude, latitude);

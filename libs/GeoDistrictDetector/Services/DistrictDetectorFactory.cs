@@ -5,12 +5,12 @@ using GeoDistrictDetector.Models;
 namespace GeoDistrictDetector.Services
 {
     /// <summary>
-    /// DistrictDetector 工厂，负责创建和初始化 DistrictDetector 实例
+    /// DistrictDetector factory, responsible for creating and initializing DistrictDetector instances
     /// </summary>
     public static class DistrictDetectorFactory
     {
         /// <summary>
-        /// 从 CSV 文件创建 DistrictDetector
+        /// Create DistrictDetector from CSV file
         /// </summary>
         public static DistrictDetector CreateFromCsv(string csvPath)
         {
@@ -20,7 +20,7 @@ namespace GeoDistrictDetector.Services
         }
 
         /// <summary>
-        /// 从 District 列表创建 DistrictDetector
+        /// Create DistrictDetector from District list
         /// </summary>
         public static DistrictDetector CreateFromDistricts(List<District> districts)
         {
